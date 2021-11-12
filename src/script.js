@@ -15,12 +15,14 @@ class NewScene{
     _Init(){
         this.scene = new THREE.Scene()
         this.clock = new THREE.Clock()
+        this.objectsToUpdate = []
         this.InitStats()
         this.InitPhysics()
         this.InitPhysicsDebugger()
         this.InitCamera()
         this.InitEnv()
         this.InitBuildings()
+        this.Heli()
         this.InitLights()
         this.InitRenderer()
         this.InitControls()
@@ -108,9 +110,24 @@ class NewScene{
         }
     }
 
+    Heli(){
+        this.helicopterBody = new CANNON.Body({
+            mass: 1,
+            material: this.defaultMaterial
+        })
+        this.helicopterShape = new CANNON.Sphere(5)
+        this.helicopterBody.addShape(this.helicopterShape)
+        this.helicopterBody.addShape(new CANNON.Box(new CANNON.Vec3(3.5, 0.5, 3.5)))
+        this.helicopterBody.addShape(new CANNON.Box(new CANNON.Vec3(3.5, 3.5, 0.5)))
+        this.world.addBody(this.helicopterBody)
+        this.helicopterBody.position.set(0, 15, 0)
+        
+
+    }
+
     InitCamera(){
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 10000)
-        this.camera.position.set(0, 500, 500)
+        this.camera.position.set(0, 5, 15)
         this.scene.add(this.camera)
     }
 
@@ -147,6 +164,10 @@ class NewScene{
 
     Update(){
         requestAnimationFrame(() => {
+            this.elapsedTime = this.clock.getElapsedTime()
+            this.deltaTime = this.elapsedTime - this.oldElapsedTime
+            this.oldElapsedTime = this.elapsedTime
+            this.world.step(1/60, this.oldElapsedTime, 3)
             this.renderer.render(this.scene, this.camera)
             this.controls.update()
             this.stats.update() 
