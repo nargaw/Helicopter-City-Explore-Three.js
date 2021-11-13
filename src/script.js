@@ -60,7 +60,7 @@ class NewScene{
             this.scene,
             this.world.bodies,
             {
-                color: 0xff00ff,
+                color: 0x00ffff,
                 autoUpdate: true
             }
         )
@@ -112,22 +112,65 @@ class NewScene{
 
     Heli(){
         this.helicopterBody = new CANNON.Body({
-            mass: 1,
+            mass: 30,
             material: this.defaultMaterial
         })
         this.helicopterShape = new CANNON.Sphere(5)
+        this.helicopterTailShape = new CANNON.Box(new CANNON.Vec3(1, 1.5, 7))
         this.helicopterBody.addShape(this.helicopterShape)
         this.helicopterBody.addShape(new CANNON.Box(new CANNON.Vec3(3.5, 0.5, 3.5)))
         this.helicopterBody.addShape(new CANNON.Box(new CANNON.Vec3(3.5, 3.5, 0.5)))
+        this.helicopterBody.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 4.0)), new CANNON.Vec3(-2.0, -7, 0))
+        this.helicopterBody.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 4.0)), new CANNON.Vec3(2.0, -7, 0))
+        this.helicopterBody.addShape(this.helicopterTailShape, new CANNON.Vec3(0, 0, 7) )
         this.world.addBody(this.helicopterBody)
-        this.helicopterBody.position.set(0, 15, 0)
+        this.helicopterBody.position.set(0, 7, 0)
         
+        this.rotorShape = new CANNON.Sphere(0.5)
+        this.rotorBody = new CANNON.Body({
+            mass: 1,
+            material: this.defaultMaterial
+        })
+        this.rotorBody.addShape(this.rotorShape)
+        this.rotorBody.addShape(new CANNON.Box(new CANNON.Vec3(10, 0.01, 0.25)))
+        this.rotorBody.position.set(0, 10, 0)
+        this.world.addBody(this.rotorBody)
+
+        this.rotorConstraint = new CANNON.PointToPointConstraint(
+            this.helicopterBody,
+            new CANNON.Vec3(0, 6, 0),
+            this.rotorBody,
+            new CANNON.Vec3(0, 0, 0)
+        )
+
+        this.tailRotorShape = new CANNON.Sphere(0.25)
+        this.tailRotorBody = new CANNON.Body({
+            mass: 0.01,
+            material: this.defaultMaterial
+        })
+        this.tailRotorBody.addShape(this.tailRotorShape)
+        this.tailRotorBody.addShape(new CANNON.Box(new CANNON.Vec3(0.01, 2, 0.25)))
+        this.tailRotorBody.position.set(0, 0, 15)
+        this.world.addBody(this.tailRotorBody)
+
+        this.tailRotorConstraint = new CANNON.PointToPointConstraint(
+            this.tailRotorBody,
+            new CANNON.Vec3(0, 0, 0),
+            this.helicopterBody,
+            new CANNON.Vec3(0, 0, 16.2)
+        )
+
+        this.rotorConstraint.collideConnected = false
+        this.tailRotorConstraint.collideConnected = false
+        this.world.addConstraint(this.rotorConstraint)
+        this.world.addConstraint(this.tailRotorConstraint)
+
 
     }
 
     InitCamera(){
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 10000)
-        this.camera.position.set(0, 5, 15)
+        this.camera.position.set(0, 10, 20)
         this.scene.add(this.camera)
     }
 
@@ -168,6 +211,8 @@ class NewScene{
             this.deltaTime = this.elapsedTime - this.oldElapsedTime
             this.oldElapsedTime = this.elapsedTime
             this.world.step(1/60, this.oldElapsedTime, 3)
+            this.rotorBody.angularVelocity.y = 40
+            this.tailRotorBody.angularVelocity.x = 15
             this.renderer.render(this.scene, this.camera)
             this.controls.update()
             this.stats.update() 
