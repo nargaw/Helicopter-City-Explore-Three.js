@@ -15,21 +15,30 @@ class NewScene{
     _Init(){
         this.scene = new THREE.Scene()
         this.clock = new THREE.Clock()
+        this.v = new THREE.Vector3()
         this.objectsToUpdate = []
+        this.keyMap = {}
+        this.elevate = false
+        this.force = new CANNON.Vec3(0, 5, 0)
+        this.InitCamera()
         this.InitStats()
         this.InitPhysics()
         this.InitPhysicsDebugger()
-        this.InitCamera()
         this.InitEnv()
         this.InitBuildings()
         this.Heli()
+        this.InitHeliControls()
+        
         this.InitLights()
         this.InitRenderer()
-        this.InitControls()
+        //this.InitControls()
         this.Update()
         window.addEventListener('resize', () => {
             this.Resize()
         })
+        document.addEventListener('keydown', this.onDocumentKey, false)
+        document.addEventListener('keyup', this.onDocumentKey, false)
+
     }
 
     InitStats(){
@@ -111,8 +120,18 @@ class NewScene{
     }
 
     Heli(){
+        //this.group = new THREE.Group()
+        this.heliMesh = new THREE.Mesh(new THREE.SphereBufferGeometry(1), new THREE.MeshBasicMaterial())
+        
+        //this.group.add(this.heliMesh)
+        this.scene.add(this.heliMesh)
+        this.heliMesh.add(this.chaseCam)
+        this.heliMesh.position.set(0, 20, 0)
+        //this.group.add(this.chaseCam)
+        //this.group.position.set(0, 0, 100)
+        
         this.helicopterBody = new CANNON.Body({
-            mass: 30,
+            mass: 1,
             material: this.defaultMaterial
         })
         this.helicopterShape = new CANNON.Sphere(5)
@@ -164,14 +183,31 @@ class NewScene{
         this.tailRotorConstraint.collideConnected = false
         this.world.addConstraint(this.rotorConstraint)
         this.world.addConstraint(this.tailRotorConstraint)
+        this.helicopterBody.position.copy(this.heliMesh.position)
+        this.objectsToUpdate.push({
+            mesh: this.heliMesh,
+            body: this.helicopterBody
+        })
+        
+    }
 
-
+    InitHeliControls(){
+        this.onDocumentKey = (e) => {
+            this.keyMap[e.key] = 'keydown'
+            console.log(this.keyMap)
+        }
     }
 
     InitCamera(){
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 10000)
-        this.camera.position.set(0, 10, 20)
-        this.scene.add(this.camera)
+        //this.camera.position.set(0, 10, 20)
+        //this.scene.add(this.camera)
+        this.chaseCam = new THREE.Object3D()
+        this.chaseCam.position.set(0, 0, 0)
+        this.chaseCamPivot = new THREE.Object3D()
+        this.chaseCamPivot.position.set(0, 12, 14)
+        this.chaseCam.add(this.chaseCamPivot)
+        this.scene.add(this.chaseCam)
     }
 
     InitLights(){
@@ -195,7 +231,7 @@ class NewScene{
         
             this.controls = new OrbitControls(this.camera, canvas)
             this.controls.enableDamping = true
-            this.controls.update()
+            //this.controls.update()
         
     }
 
@@ -211,10 +247,41 @@ class NewScene{
             this.deltaTime = this.elapsedTime - this.oldElapsedTime
             this.oldElapsedTime = this.elapsedTime
             this.world.step(1/60, this.oldElapsedTime, 3)
+
+            
+
+            for(this.object of this.objectsToUpdate){
+                this.object.mesh.position.copy(this.object.body.position)
+                this.object.mesh.quaternion.copy(this.object.body.quaternion)
+            }
+
+            //elevate
+            this.elevate = false
+            if (this.keyMap['e']){
+                if (this.force.y < 4000){
+                    this.force.y += 10
+                    this.elevate = true
+                    console.log(this.force)
+                }
+            }
+
+            if (!this.climbing && this.helicopterBody.position.y > 20) {
+            this.force -= 25
+    }
+
             this.rotorBody.angularVelocity.y = 40
             this.tailRotorBody.angularVelocity.x = 15
+            this.rotorBody.applyForce(this.force, new CANNON.Vec3())
+
+            this.camera.lookAt(this.heliMesh.position)
+            this.chaseCamPivot.getWorldPosition(this.v)
+            if(this.v.y < 1){
+                this.v.y = 1
+            }
+            this.camera.position.lerpVectors(this.camera.position, this.v, 0.1)
+
             this.renderer.render(this.scene, this.camera)
-            this.controls.update()
+            //this.controls.update()
             this.stats.update() 
             this.Update()
         })  
