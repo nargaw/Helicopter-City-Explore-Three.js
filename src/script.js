@@ -131,7 +131,7 @@ class NewScene{
         //this.group.position.set(0, 0, 100)
         
         this.helicopterBody = new CANNON.Body({
-            mass: 0.5,
+            mass: 10,
             material: this.defaultMaterial
         })
         this.helicopterShape = new CANNON.Sphere(5)
@@ -147,7 +147,7 @@ class NewScene{
         
         this.rotorShape = new CANNON.Sphere(0.5)
         this.rotorBody = new CANNON.Body({
-            mass: 1,
+            mass: 0.01,
             material: this.defaultMaterial
         })
         this.rotorBody.addShape(this.rotorShape)
@@ -180,7 +180,7 @@ class NewScene{
         )
 
         this.rotorConstraint.collideConnected = false
-        this.tailRotorConstraint.collideConnected = false
+        this.tailRotorConstraint.collideConnected = true
         this.world.addConstraint(this.rotorConstraint)
         this.world.addConstraint(this.tailRotorConstraint)
         this.helicopterBody.position.copy(this.heliMesh.position)
@@ -188,13 +188,15 @@ class NewScene{
             mesh: this.heliMesh,
             body: this.helicopterBody
         })
+
+        
         
     }
 
     InitHeliControls(){
         this.onDocumentKey = (e) => {
             this.keyMap[e.key] = 'keydown'
-            console.log(this.keyMap)
+            //console.log(this.keyMap)
             
         }
     }
@@ -258,11 +260,22 @@ class NewScene{
 
             //elevate
             this.elevate = false
-            if (this.keyMap['e'] && 20 < this.force.y < 100 && 0 < this.helicopterBody.position.y < 200){
-                this.force.y += 1
+            if (this.keyMap['e'] && this.helicopterBody.position.y < 50){
+                // this.force.y = 105.0
+                this.force.y += 0.5
                 this.elevate = true
-                //console.log(this.force)
+                console.log(this.force)
+                this.keyMap = {}
+                this.world.gravity.set(0, -0.1, 0)
+                this.helicopterBody.applyLocalForce(this.force, new CANNON.Vec3(0, 0, 0))
             }
+
+            if (this.helicopterBody.position.y > 100 && this.force.y > 9.82){
+                this.force.y -= 0.5
+                this.helicopterBody.applyLocalForce(this.force, new CANNON.Vec3(0, 0, 0))
+                console.log(this.force)
+            }
+            
 
             // if(!this.elevate){
             //     this.keyMap = {}
@@ -277,12 +290,12 @@ class NewScene{
             // }
 
             this.rotorBody.angularVelocity.y = 40
-            this.tailRotorBody.angularVelocity.x = 15
+            this.tailRotorBody.angularVelocity.x = 40
             this.rotorBody.applyForce(this.force, new CANNON.Vec3())
-
+            //this.tailRotorBody.applyForce(this.force, new CANNON.Vec3())
             this.camera.lookAt(this.heliMesh.position)
             this.chaseCamPivot.getWorldPosition(this.v)
-            if(this.v.y < 1){
+            if(this.v.y < 1 && this.v.y > 1){
                 this.v.y = 1
             }
             this.camera.position.lerpVectors(this.camera.position, this.v, 0.1)
