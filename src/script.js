@@ -19,7 +19,7 @@ class NewScene{
         this.objectsToUpdate = []
         this.keyMap = {}
         this.elevate = false
-        this.force = new CANNON.Vec3(0, 5, 0)
+        this.force = new CANNON.Vec3(0, 0, 0)
         this.InitCamera()
         this.InitStats()
         this.InitPhysics()
@@ -131,7 +131,7 @@ class NewScene{
         //this.group.position.set(0, 0, 100)
         
         this.helicopterBody = new CANNON.Body({
-            mass: 1,
+            mass: 0.5,
             material: this.defaultMaterial
         })
         this.helicopterShape = new CANNON.Sphere(5)
@@ -195,6 +195,7 @@ class NewScene{
         this.onDocumentKey = (e) => {
             this.keyMap[e.key] = 'keydown'
             console.log(this.keyMap)
+            
         }
     }
 
@@ -205,7 +206,7 @@ class NewScene{
         this.chaseCam = new THREE.Object3D()
         this.chaseCam.position.set(0, 0, 0)
         this.chaseCamPivot = new THREE.Object3D()
-        this.chaseCamPivot.position.set(0, 12, 14)
+        this.chaseCamPivot.position.set(0, 22, 44)
         this.chaseCam.add(this.chaseCamPivot)
         this.scene.add(this.chaseCam)
     }
@@ -257,17 +258,23 @@ class NewScene{
 
             //elevate
             this.elevate = false
-            if (this.keyMap['e']){
-                if (this.force.y < 4000){
-                    this.force.y += 10
-                    this.elevate = true
-                    console.log(this.force)
-                }
+            if (this.keyMap['e'] && 20 < this.force.y < 100 && 0 < this.helicopterBody.position.y < 200){
+                this.force.y += 1
+                this.elevate = true
+                //console.log(this.force)
             }
 
-            if (!this.climbing && this.helicopterBody.position.y > 20) {
-            this.force -= 25
-    }
+            // if(!this.elevate){
+            //     this.keyMap = {}
+            // }
+
+            // if(this.helicopterBody.position.y > 100 && this.force.y >= 100){
+            //     this.force.y -= 0.1
+            // }
+
+            // if(!this.elevate && this.helicopterBody.position.y > 0 ){
+            //     this.force.y = 9.82 + Math.sin(Math.random() * 0.001)
+            // }
 
             this.rotorBody.angularVelocity.y = 40
             this.tailRotorBody.angularVelocity.x = 15
@@ -279,7 +286,8 @@ class NewScene{
                 this.v.y = 1
             }
             this.camera.position.lerpVectors(this.camera.position, this.v, 0.1)
-
+            //console.log(this.helicopterBody.position.y)
+            //console.log(this.force.y)
             this.renderer.render(this.scene, this.camera)
             //this.controls.update()
             this.stats.update() 
