@@ -1,8 +1,4 @@
-# Three.js Template
-
-## Setup
-Download [Node.js](https://nodejs.org/en/download/).
-Run this followed commands:
+Heli
 
 ``` bash
 # Install dependencies (only the first time)
