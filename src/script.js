@@ -1,6 +1,7 @@
 import './style.css'
 import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { GUI } from 'dat.gui'
 import Stats from 'stats.js'
 import * as CANNON from 'cannon-es'
@@ -29,6 +30,7 @@ class NewScene{
         this.InitStats()
         this.InitPhysics()
         this.InitPhysicsDebugger()
+        this.HeliGLTF()
         this.InitEnv()
         this.InitBuildings()
         this.Heli()
@@ -81,7 +83,7 @@ class NewScene{
     }
 
     InitEnv(){
-        this.planeGeomtery = new THREE.PlaneGeometry(1000, 1000)
+        this.planeGeomtery = new THREE.PlaneGeometry(100000, 100000)
         this.planeMaterial = new THREE.MeshStandardMaterial({
             color: 0x144552,
             side: THREE.DoubleSide
@@ -106,7 +108,7 @@ class NewScene{
             this.x = Math.round(Math.random()*20+10)
             this.z = Math.round(Math.random()*20+10)
             this.angle = Math.random() * Math.PI * 20
-            this.radius = 100 + Math.random() * 500
+            this.radius = 100 + Math.random() * 5000
             this.posX = Math.cos(this.angle) * this.radius
             this.posZ = Math.sin(this.angle) * this.radius
             this.building = new THREE.Mesh(new THREE.BoxGeometry(this.x, this.rand, this.z), this.buildingMaterial)
@@ -124,77 +126,108 @@ class NewScene{
         }
     }
 
+    HeliGLTF(){
+       this.gltfLoader = new GLTFLoader()
+       this.meshMaterial = new THREE.MeshNormalMaterial()
+        this.gltfLoader.load(
+            'heli2.glb', (gltf) => {
+                gltf.scene.traverse((child) => {
+                    child.material = this.meshMaterial
+                    if(child.name === 'MainRotor'){
+                        this.rotorMesh = child
+                        
+                    }
+                    if(child.name === 'heli'){
+                        this.heliMesh = child
+                        // this.heliMesh.rotation.y = -Math.PI * 0.5
+                        
+                        this.heliMesh.add(this.chaseCam)
+                    }
+                })
+                this.scene.add(gltf.scene)
+                //console.log(gltf)
+                this.helicopterBody = new CANNON.Body({
+                    mass: 0.05,
+                    material: this.defaultMaterial
+                })
+                this.helicopterShape = new CANNON.Box(new CANNON.Vec3(0.6, 1.0, 0.8))
+                this.helicopterBody.addShape(this.helicopterShape)
+                if(this.heliMesh){
+                    this.helicopterBody.position.copy(this.heliMesh.position)
+                }
+                this.helicopterBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, -1, 0), Math.PI * 0.5)
+                this.helicopterBody.angularDamping = 0.9
+                this.world.addBody(this.helicopterBody)
+                
+                if(this.heliMesh){
+                    console.log(this.heliMesh)
+                    this.objectsToUpdate.push({
+                        mesh: this.heliMesh,
+                        body: this.helicopterBody
+                    })
+                }
+
+                this.rotorShape = new CANNON.Sphere(0.1)
+                this.rotorBody = new CANNON.Body({
+                    mass: 0.1,
+                    material: this.defaultMaterial
+                })
+                this.rotorBody.addShape(this.rotorShape)
+                this.rotorBody.position.x = this.rotorMesh.position.x
+                this.rotorBody.position.y = this.rotorMesh.position.y
+                this.rotorBody.position.z = this.rotorMesh.position.z
+
+                this.rotorBody.linearDamping = 0.5
+                this.world.addBody(this.rotorBody)
+
+                this.rotorConstraint = new CANNON.PointToPointConstraint(
+                    this.helicopterBody,
+                    new CANNON.Vec3(0, 0.05, 0),
+                    this.rotorBody,
+                    new CANNON.Vec3(0, 0, 0)
+                )
+
+                this.rotorConstraint.collideConnected = false
+                this.world.addConstraint(this.rotorConstraint)
+
+                this.objectsToUpdate.push({
+                    mesh: this.rotorMesh,
+                    body: this.rotorBody
+                }) 
+            }
+        ) 
+    }
+
     Heli(){
-        this.heliGeometry = new THREE.SphereBufferGeometry(0.66)
-        this.heliMesh = new THREE.Mesh(this.heliGeometry, new THREE.MeshNormalMaterial())
-        this.heliMesh.position.y = 1
-        this.scene.add(this.heliMesh)
-        this.heliMesh.add(this.chaseCam)
-
-        this.heliTailGeometry = new THREE.BoxGeometry(0.1, 0.1, 2)
-        this.heliTailMesh = new THREE.Mesh(this.heliTailGeometry, new THREE.MeshNormalMaterial())
-        this.heliTailMesh.position.z = 1
-        this.heliMesh.add(this.heliTailMesh)
-
-        this.landingGeometry = new THREE.BoxGeometry(0.1, 0.05, 1.5)
-        this.leftLandingMesh = new THREE.Mesh(this.landingGeometry, new THREE.MeshNormalMaterial())
-        this.rightLandingMesh = new THREE.Mesh(this.landingGeometry, new THREE.MeshNormalMaterial())
-        this.leftLandingMesh.position.set(-0.5, -0.5, 0)
-        this.rightLandingMesh.position.set(0.5, -0.5, 0)
-        this.heliMesh.add(this.leftLandingMesh, this.rightLandingMesh)
         
-        this.helicopterBody = new CANNON.Body({
-            mass: 0.05,
-            material: this.defaultMaterial
-        })
-        this.helicopterShape = new CANNON.Box(new CANNON.Vec3(0.6, 0.5, 0.6))
-        this.helicopterBody.addShape(this.helicopterShape)
-        this.helicopterBody.position.copy(this.heliMesh.position)
-        this.helicopterBody.angularDamping = 0.9
-        this.world.addBody(this.helicopterBody)
+        //this.heliGeometry = new THREE.SphereBufferGeometry(0.66)
+        //this.heliMesh = new THREE.Mesh(this.heliGeometry, new THREE.MeshNormalMaterial())
+        // this.heliMesh.position.y = 1
+        // this.scene.add(this.heliMesh)
+        
+
+        // this.heliTailGeometry = new THREE.BoxGeometry(0.2, 0.1, 2)
+        // this.heliTailMesh = new THREE.Mesh(this.heliTailGeometry, new THREE.MeshNormalMaterial())
+        // this.heliTailMesh.position.z = 1
+        // this.heliMesh.add(this.heliTailMesh)
+
+        // this.landingGeometry = new THREE.BoxGeometry(0.2, 0.1, 1.25)
+        // this.leftLandingMesh = new THREE.Mesh(this.landingGeometry, new THREE.MeshNormalMaterial())
+        // this.rightLandingMesh = new THREE.Mesh(this.landingGeometry, new THREE.MeshNormalMaterial())
+        // this.leftLandingMesh.position.set(-0.5, -0.8, 0)
+        // this.rightLandingMesh.position.set(0.5, -0.8, 0)
+        // this.heliMesh.add(this.leftLandingMesh, this.rightLandingMesh)
         
         
-        this.objectsToUpdate.push({
-            mesh: this.heliMesh,
-            body: this.helicopterBody
-        })
-
-
-        this.rotorGeometry = new THREE.BoxGeometry(0.1, 0.01, 5)
-        this.rotorMesh = new THREE.Mesh(this.rotorGeometry, new THREE.MeshNormalMaterial())
-        this.rotorMesh.position.set(0, 3, 0)
-        this.scene.add(this.rotorMesh)
         
-        this.rotorShape = new CANNON.Sphere(0.1)
-        this.rotorBody = new CANNON.Body({
-            mass: 0.1,
-            material: this.defaultMaterial
-        })
-        this.rotorBody.addShape(this.rotorShape)
-        this.rotorBody.position.x = this.rotorMesh.position.x
-        this.rotorBody.position.y = this.rotorMesh.position.y
-        this.rotorBody.position.z = this.rotorMesh.position.z
-
-        this.rotorBody.linearDamping = 0.5
-        this.world.addBody(this.rotorBody)
-
-        this.rotorConstraint = new CANNON.PointToPointConstraint(
-            this.helicopterBody,
-            new CANNON.Vec3(0, 1, 0),
-            this.rotorBody,
-            new CANNON.Vec3(0, 0, 0)
-        )
-
-        this.rotorConstraint.collideConnected = false
-        this.world.addConstraint(this.rotorConstraint)
-
-        this.objectsToUpdate.push({
-            mesh: this.rotorMesh,
-            body: this.rotorBody
-        })
 
 
+        // this.rotorGeometry = new THREE.BoxGeometry(0.1, 0.01, 5)
+        // this.rotorMesh = new THREE.Mesh(this.rotorGeometry, new THREE.MeshNormalMaterial())
+        // this.rotorMesh.position.set(0, 3, 0)
+        // this.scene.add(this.rotorMesh)
         
+         
     }
 
     InitHeliControls(){
@@ -204,11 +237,11 @@ class NewScene{
     }
 
     InitCamera(){
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000)
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100000)
         this.chaseCam = new THREE.Object3D()
         this.chaseCam.position.set(0, 0, 0)
         this.chaseCamPivot = new THREE.Object3D()
-        this.chaseCamPivot.position.set(0, 2, 4)
+        this.chaseCamPivot.position.set(-30, 15, 0)
         this.chaseCam.add(this.chaseCamPivot)
         this.scene.add(this.chaseCam)
     }
@@ -216,6 +249,9 @@ class NewScene{
     InitLights(){
         this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
         this.scene.add(this.ambientLight)
+        this.pointLight = new THREE.PointLight(0xffffff, 1.5, 1000)
+        this.pointLight.position.set(0, 500, 0)
+        this.scene.add(this.pointLight)
     }
 
     InitRenderer(){
@@ -231,11 +267,9 @@ class NewScene{
     }
 
     InitControls(){
-        
-            this.controls = new OrbitControls(this.camera, canvas)
-            this.controls.enableDamping = true
-            //this.controls.update()
-        
+        this.controls = new OrbitControls(this.camera, canvas)
+        this.controls.enableDamping = true
+        //this.controls.update()   
     }
 
     Resize(){
@@ -246,25 +280,30 @@ class NewScene{
 
     Update(){
         requestAnimationFrame(() => {
-
             this.elapsedTime = this.clock.getElapsedTime()
             this.deltaTime = this.elapsedTime - this.oldElapsedTime
             this.oldElapsedTime = this.elapsedTime
             this.delta = this.clock.getDelta()
             this.world.step(1/60, this.oldElapsedTime, 3)
+            if(this.rotorMesh && this.heliMesh){
 
             for(this.object of this.objectsToUpdate){
                 this.object.mesh.position.copy(this.object.body.position)
                 this.object.mesh.quaternion.copy(this.object.body.quaternion)
             }
 
-            this.rotorMesh.position.set(
-                this.rotorBody.position.x,
-                this.rotorBody.position.y,
-                this.rotorBody.position.z
-            )
+            
+            //     this.rotorMesh.position.set(
+            //     this.rotorBody.position.x,
+            //     this.rotorBody.position.y,
+            //     this.rotorBody.position.z
+            // )
             this.rotorMesh.rotateY(this.elapsedTime * this.thrust.y * 40)
             this.rotorMesh.position.copy(this.rotorBody.position)
+            
+            
+            
+            
 
             this.climbing = false
             if (this.keyMap['e']){
@@ -272,17 +311,15 @@ class NewScene{
                     this.thrust.y += 3.5 * this.deltaTime
                     this.climbing = true
                 }
+                this.keyMap = {}
             }
             if(this.keyMap['q']){
                 if(this.thrust.y > 3){
                     this.thrust.y -= 2.5 * this.deltaTime
                     this.climbing = true
                 }
+                this.keyMap = {}
             }
-
-            // if(!this.elevate && this.heliMesh.position.y > 5){
-            //     this.force.y = this.stableLift
-            // }
 
             this.yawing = false
             this.banking = false
@@ -295,7 +332,7 @@ class NewScene{
                     }
                     this.banking = true
                 }
-                
+                this.keyMap = {}
             }
             
             if (this.keyMap['d']){
@@ -307,17 +344,18 @@ class NewScene{
                     this.thrust.x += 5 * this.deltaTime
                 }
                 this.banking = true
+                this.keyMap = {}
             }
 
             this.pitching = false
-            if(this.keyMap['w']){
+            if(this.keyMap['s']){
                 if(this.thrust.z >= -5.0){
                     this.thrust.z -= 2.5 * this.deltaTime
                     this.pitching = true     
                 }
                 
             }
-            if(this.keyMap['s']){
+            if(this.keyMap['w']){
                 if(this.thrust.z <= 5.0){
                     this.thrust.z += 2.5 * this.deltaTime
                     this.pitching = true     
@@ -353,24 +391,17 @@ class NewScene{
                     this.thrust.x -= 2.5 * this.deltaTime
                 }
             }
-            
-
-            
-            
-            
-            this.keyMap = {}
-
 
             this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())
-            this.camera.lookAt(this.heliMesh.position)
+            if(this.heliMesh){
+                this.camera.lookAt(this.heliMesh.position)
+            }
             this.chaseCamPivot.getWorldPosition(this.v)
             if(this.v.y < 1){
                 this.v.y = 1
             }
             this.camera.position.lerpVectors(this.camera.position, this.v, 1)
-            //console.log(this.helicopterBody.position.y)
-            //console.log(this.thrust.y)
-            console.log(this.thrust.z)
+        }
             this.renderer.render(this.scene, this.camera)
             this.stats.update() 
             this.Update()
