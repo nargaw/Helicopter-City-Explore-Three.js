@@ -150,7 +150,7 @@ class NewScene{
                     mass: 0.05,
                     material: this.defaultMaterial
                 })
-                this.helicopterShape = new CANNON.Box(new CANNON.Vec3(0.6, 1.0, 0.8))
+                this.helicopterShape = new CANNON.Box(new CANNON.Vec3(3., 0.05, 2.0))
                 this.helicopterBody.addShape(this.helicopterShape)
                 if(this.heliMesh){
                     this.helicopterBody.position.copy(this.heliMesh.position)
@@ -158,6 +158,8 @@ class NewScene{
                 this.helicopterBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, -1, 0), Math.PI * 0.5)
                 this.helicopterBody.angularDamping = 0.9
                 this.world.addBody(this.helicopterBody)
+
+                this.helicopterBody.addShape(new CANNON.Box(new CANNON.Vec3(1.0, 0.5, 1.5)), new CANNON.Vec3(0, -1.6, 0))
                 
                 if(this.heliMesh){
                     console.log(this.heliMesh)
@@ -324,11 +326,11 @@ class NewScene{
             this.yawing = false
             this.banking = false
             if (this.keyMap['a']){
-                if(this.rotorBody.angularVelocity.y < 2.0){
+                if(this.rotorBody.angularVelocity.y < 15.0){
                     this.rotorBody.angularVelocity.y += 2.5 * this.deltaTime
                     this.yawing = true
                 if(this.thrust.x >= -10.0){
-                    this.thrust.x -= 5 * this.deltaTime
+                    this.thrust.x -= 2.5 * this.deltaTime
                     }
                     this.banking = true
                 }
@@ -336,12 +338,12 @@ class NewScene{
             }
             
             if (this.keyMap['d']){
-                if(this.rotorBody.angularVelocity.y > -2.0){
+                if(this.rotorBody.angularVelocity.y > -15.0){
                     this.rotorBody.angularVelocity.y -= 2.5 * this.deltaTime
                     this.yawing = true
                 }
                 if(this.thrust.x <= 10.0){
-                    this.thrust.x += 5 * this.deltaTime
+                    this.thrust.x += 2.5 * this.deltaTime
                 }
                 this.banking = true
                 this.keyMap = {}
@@ -349,14 +351,14 @@ class NewScene{
 
             this.pitching = false
             if(this.keyMap['s']){
-                if(this.thrust.z >= -5.0){
-                    this.thrust.z -= 2.5 * this.deltaTime
+                if(this.thrust.z >= -15.0){
+                    this.thrust.z -= 0.5 * this.deltaTime
                     this.pitching = true     
                 }
                 
             }
             if(this.keyMap['w']){
-                if(this.thrust.z <= 5.0){
+                if(this.thrust.z <= 15.0){
                     this.thrust.z += 2.5 * this.deltaTime
                     this.pitching = true     
                 }
@@ -365,10 +367,10 @@ class NewScene{
 
             if(!this.yawing){
                 if(this.rotorBody.angularVelocity.y < 0){
-                    this.rotorBody.angularVelocity.y += 1 * this.deltaTime
+                    this.rotorBody.angularVelocity.y += 0.5 * this.deltaTime
                 }
                 if(this.rotorBody.angularVelocity.y > 0){
-                    this.rotorBody.angularVelocity.y -= 1 * this.deltaTime
+                    this.rotorBody.angularVelocity.y -= 0.5 * this.deltaTime
                 }
             }
 
@@ -376,10 +378,10 @@ class NewScene{
 
             if(!this.pitching){
                 if(this.thrust.z < 0){
-                    this.thrust.z += 2.5 * this.deltaTime
+                    this.thrust.z += 3.5 * this.deltaTime
                 }
                 if(this.thrust.z > 0){
-                    this.thrust.z -= 2.5 * this.deltaTime
+                    this.thrust.z -= 3.5 * this.deltaTime
                 }
             }
 
@@ -391,6 +393,8 @@ class NewScene{
                     this.thrust.x -= 2.5 * this.deltaTime
                 }
             }
+
+            console.log(this.thrust)
 
             this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())
             if(this.heliMesh){
