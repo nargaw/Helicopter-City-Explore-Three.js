@@ -29,7 +29,7 @@ class NewScene{
         this.InitCamera()
         this.InitStats()
         this.InitPhysics()
-        this.InitPhysicsDebugger()
+        //this.InitPhysicsDebugger()
         this.HeliGLTF()
         this.InitEnv()
         this.InitBuildings()
@@ -147,7 +147,7 @@ class NewScene{
                 this.scene.add(gltf.scene)
                 //console.log(gltf)
                 this.helicopterBody = new CANNON.Body({
-                    mass: 0.05,
+                    mass: 0.125,
                     material: this.defaultMaterial
                 })
                 this.helicopterShape = new CANNON.Box(new CANNON.Vec3(3., 0.05, 2.0))
@@ -162,7 +162,7 @@ class NewScene{
                 this.helicopterBody.addShape(new CANNON.Box(new CANNON.Vec3(1.0, 0.5, 1.5)), new CANNON.Vec3(0, -1.6, 0))
                 
                 if(this.heliMesh){
-                    console.log(this.heliMesh)
+                    //console.log(this.heliMesh)
                     this.objectsToUpdate.push({
                         mesh: this.heliMesh,
                         body: this.helicopterBody
@@ -171,7 +171,7 @@ class NewScene{
 
                 this.rotorShape = new CANNON.Sphere(0.1)
                 this.rotorBody = new CANNON.Body({
-                    mass: 0.1,
+                    mass: 0.25,
                     material: this.defaultMaterial
                 })
                 this.rotorBody.addShape(this.rotorShape)
@@ -184,7 +184,7 @@ class NewScene{
 
                 this.rotorConstraint = new CANNON.PointToPointConstraint(
                     this.helicopterBody,
-                    new CANNON.Vec3(0, 0.05, 0),
+                    new CANNON.Vec3(0, 0.1, 0),
                     this.rotorBody,
                     new CANNON.Vec3(0, 0, 0)
                 )
@@ -243,7 +243,7 @@ class NewScene{
         this.chaseCam = new THREE.Object3D()
         this.chaseCam.position.set(0, 0, 0)
         this.chaseCamPivot = new THREE.Object3D()
-        this.chaseCamPivot.position.set(-30, 15, 0)
+        this.chaseCamPivot.position.set(-50, 15, 0)
         this.chaseCam.add(this.chaseCamPivot)
         this.scene.add(this.chaseCam)
     }
@@ -310,14 +310,14 @@ class NewScene{
             this.climbing = false
             if (this.keyMap['e']){
                 if(this.thrust.y < 40){
-                    this.thrust.y += 3.5 * this.deltaTime
+                    this.thrust.y += 5 * this.deltaTime
                     this.climbing = true
                 }
                 this.keyMap = {}
             }
             if(this.keyMap['q']){
                 if(this.thrust.y > 3){
-                    this.thrust.y -= 2.5 * this.deltaTime
+                    this.thrust.y -= 5 * this.deltaTime
                     this.climbing = true
                 }
                 this.keyMap = {}
@@ -394,7 +394,11 @@ class NewScene{
                 }
             }
 
-            console.log(this.thrust)
+            if(this.climbing == false && this.heliMesh.position.y > 2){
+                this.thrust.y = this.stableLift
+            }
+
+            //console.log(this.thrust)
 
             this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())
             if(this.heliMesh){
