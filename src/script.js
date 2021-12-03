@@ -29,7 +29,7 @@ class NewScene{
         this.InitCamera()
         this.InitStats()
         this.InitPhysics()
-        this.InitPhysicsDebugger()
+        //this.InitPhysicsDebugger()
         this.HeliGLTF()
         this.InitEnv()
         this.InitBuildings()
@@ -60,8 +60,8 @@ class NewScene{
             this.defaultMaterial,
             this.defaultMaterial,
             {
-                friction: 0.0025,
-                restitution: 0.0025
+                friction: 0,
+                restitution: 0
             }
         )
         this.world.broadphase = new CANNON.SAPBroadphase(this.world)
@@ -84,7 +84,7 @@ class NewScene{
     InitEnv(){
         this.planeGeomtery = new THREE.PlaneGeometry(10000, 10000)
         this.planeMaterial = new THREE.MeshStandardMaterial({
-            color: 0x144552,
+            color: 0x151515,
             side: THREE.DoubleSide
         })
         this.plane = new THREE.Mesh(this.planeGeomtery, this.planeMaterial)
@@ -98,16 +98,25 @@ class NewScene{
         this.world.addBody(this.groundBody)
         this.groundBody.addShape(new CANNON.Plane())
         this.groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5)
+
+        this.ceiling = new CANNON.Body({
+            mass: 0,
+            material: this.defaultMaterial
+        })
+        this.world.addBody(this.ceiling)
+        this.ceiling.addShape(new CANNON.Box(new CANNON.Vec3(10000, 2, 10000)))
+        //this.ceiling.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5)
+        this.ceiling.position.set(0, 600, 0)
     }
 
     InitBuildings(){
-        this.buildingMaterial = new THREE.MeshStandardMaterial()
+        this.buildingMaterial = new THREE.MeshStandardMaterial({ color: 0x191919 })
         for (let i = 0; i <= 250; i++){
             this.rand = 150 + Math.random() * 150;
             this.x = Math.round(Math.random()*100+100)
             this.z = Math.round(Math.random()*100+100)
             this.angle = Math.random() * Math.PI * 20
-            this.radius = 100 + Math.random() * 5000
+            this.radius = 200 + Math.random() * 5000
             this.posX = Math.cos(this.angle) * this.radius
             this.posZ = Math.sin(this.angle) * this.radius
             this.building = new THREE.Mesh(new THREE.BoxGeometry(this.x, this.rand, this.z), this.buildingMaterial)
@@ -149,7 +158,7 @@ class NewScene{
                     mass: 0.0125,
                     material: this.defaultMaterial
                 })
-                this.helicopterShape = new CANNON.Box(new CANNON.Vec3(3., 0.05, 2.0))
+                this.helicopterShape = new CANNON.Box(new CANNON.Vec3(3., 0.25, 2.0))
                 this.helicopterBody.addShape(this.helicopterShape)
                 if(this.heliMesh){
                     this.helicopterBody.position.copy(this.heliMesh.position)
@@ -218,8 +227,8 @@ class NewScene{
     InitLights(){
         this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
         this.scene.add(this.ambientLight)
-        this.pointLight = new THREE.PointLight(0xffffff, 1.5, 1000)
-        this.pointLight.position.set(0, 500, 0)
+        this.pointLight = new THREE.PointLight(0xffffff, 3.5, 10000)
+        this.pointLight.position.set(0, 1000, 0)
         this.scene.add(this.pointLight)
     }
 
@@ -318,18 +327,18 @@ class NewScene{
 
             this.pitching = false
             if(this.keyMap['s']){
-                if(this.thrust.z >= -25.0){
-                    this.thrust.z -= 0.5 * this.deltaTime
+                if(this.thrust.z >= -35.0){
+                    this.thrust.z -= 3.75 * this.deltaTime
                     this.pitching = true     
                 }
-                
+                //this.keyMap = {} 
             }
             if(this.keyMap['w']){
-                if(this.thrust.z <= 25.0){
-                    this.thrust.z += 2.5 * this.deltaTime
+                if(this.thrust.z <= 35.0){
+                    this.thrust.z += 3.5 * this.deltaTime
                     this.pitching = true     
                 }
-                
+                //this.keyMap = {} 
             }
 
             if(!this.yawing){
@@ -365,7 +374,7 @@ class NewScene{
             //     this.thrust.y = 3
             // }
 
-            console.log(this.thrust.y)
+            //console.log(this.thrust.y)
 
             this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())
             if(this.heliMesh){
@@ -375,7 +384,7 @@ class NewScene{
             if(this.v.y < 1){
                 this.v.y = 1
             }
-            this.camera.position.lerpVectors(this.camera.position, this.v, 1)
+            this.camera.position.lerpVectors(this.camera.position, this.v, 0.5)
         }
             this.renderer.render(this.scene, this.camera)
             this.stats.update() 
