@@ -20,21 +20,24 @@ class NewScene{
         this.v = new THREE.Vector3()
         this.objectsToUpdate = []
         this.keyMap = {}
+        this.hoverTouch = {}
         this.climbing = false
         this.banking = false
         this.pitching = false
         this.yawing = false
+        this.logEvents = false
+        this.tpCache = new Array()
         this.stableLift = 14.7
         this.thrust = new CANNON.Vec3(0, 5, 0)
+        
         this.InitCamera()
         this.InitStats()
         this.InitPhysics()
-        //this.InitPhysicsDebugger()
+        this.InitPhysicsDebugger()
         this.HeliGLTF()
         this.InitEnv()
         this.InitBuildings()
         this.InitHeliControls()
-        
         this.InitLights()
         this.InitRenderer()
         //this.InitControls()
@@ -44,7 +47,8 @@ class NewScene{
         })
         document.addEventListener('keydown', this.onDocumentKey, false)
         document.addEventListener('keyup', this.onDocumentKey, false)
-
+        document.addEventListener('touchstart', this.onDocumentTouch, {passive: false} )
+        document.addEventListener('touchend', this.onDocumentTouch, {passive: false}, false)
     }
 
     InitStats(){
@@ -60,8 +64,8 @@ class NewScene{
             this.defaultMaterial,
             this.defaultMaterial,
             {
-                friction: 0,
-                restitution: 0
+                friction: 0.01,
+                restitution: 0.01
             }
         )
         this.world.broadphase = new CANNON.SAPBroadphase(this.world)
@@ -84,7 +88,7 @@ class NewScene{
     InitEnv(){
         this.planeGeomtery = new THREE.PlaneGeometry(10000, 10000)
         this.planeMaterial = new THREE.MeshStandardMaterial({
-            color: 0x151515,
+            color: 0x144552,
             side: THREE.DoubleSide
         })
         this.plane = new THREE.Mesh(this.planeGeomtery, this.planeMaterial)
@@ -110,13 +114,13 @@ class NewScene{
     }
 
     InitBuildings(){
-        this.buildingMaterial = new THREE.MeshStandardMaterial({ color: 0x191919 })
+        this.buildingMaterial = new THREE.MeshStandardMaterial()
         for (let i = 0; i <= 250; i++){
             this.rand = 150 + Math.random() * 150;
             this.x = Math.round(Math.random()*100+100)
             this.z = Math.round(Math.random()*100+100)
             this.angle = Math.random() * Math.PI * 20
-            this.radius = 200 + Math.random() * 5000
+            this.radius = 100 + Math.random() * 5000
             this.posX = Math.cos(this.angle) * this.radius
             this.posZ = Math.sin(this.angle) * this.radius
             this.building = new THREE.Mesh(new THREE.BoxGeometry(this.x, this.rand, this.z), this.buildingMaterial)
@@ -158,7 +162,7 @@ class NewScene{
                     mass: 0.0125,
                     material: this.defaultMaterial
                 })
-                this.helicopterShape = new CANNON.Box(new CANNON.Vec3(3., 0.25, 2.0))
+                this.helicopterShape = new CANNON.Box(new CANNON.Vec3(3., 0.05, 2.0))
                 this.helicopterBody.addShape(this.helicopterShape)
                 if(this.heliMesh){
                     this.helicopterBody.position.copy(this.heliMesh.position)
@@ -212,6 +216,16 @@ class NewScene{
         this.onDocumentKey = (e) => {
             this.keyMap[e.key] = 'keydown'
         }
+        this.onDocumentTouch = (e) => {
+            e.preventDefault()
+            if (e.targetTouches.length == 2){
+                for ( let i = 0; i < e.targetTouches.length; i++){
+                    this.tpCache.push(e.targetTouches[i]);
+                }
+            }
+            if(this.logEvents) log('touchStart', e, true)
+            this.hoverTouch[e.target.id] = e.type === 'touchstart'
+        }
     }
 
     InitCamera(){
@@ -227,8 +241,8 @@ class NewScene{
     InitLights(){
         this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
         this.scene.add(this.ambientLight)
-        this.pointLight = new THREE.PointLight(0xffffff, 3.5, 10000)
-        this.pointLight.position.set(0, 1000, 0)
+        this.pointLight = new THREE.PointLight(0xffffff, 1.5, 1000)
+        this.pointLight.position.set(0, 500, 0)
         this.scene.add(this.pointLight)
     }
 
@@ -247,7 +261,7 @@ class NewScene{
     InitControls(){
         this.controls = new OrbitControls(this.camera, canvas)
         this.controls.enableDamping = true
-        //this.controls.update()   
+        this.controls.update()   
     }
 
     Resize(){
@@ -270,30 +284,20 @@ class NewScene{
                 this.object.mesh.quaternion.copy(this.object.body.quaternion)
             }
 
-            
-            //     this.rotorMesh.position.set(
-            //     this.rotorBody.position.x,
-            //     this.rotorBody.position.y,
-            //     this.rotorBody.position.z
-            // )
             this.rotorMesh.rotateY(this.elapsedTime * this.thrust.y * 40)
             this.rotorMesh.position.copy(this.rotorBody.position)
             
-            
-            
-            
-
             this.climbing = false
-            if (this.keyMap['e']){
+            if (this.keyMap['e'] || this.hoverTouch['5']){
                 if(this.thrust.y < 40){
-                    this.thrust.y += 5 * this.deltaTime
+                    this.thrust.y += 5 * (this.deltaTime)
                     this.climbing = true
                 }
                 this.keyMap = {}
             }
-            if(this.keyMap['q']){
+            if(this.keyMap['q'] || this.hoverTouch['6']){
                 if(this.thrust.y > 3){
-                    this.thrust.y -= 5 * this.deltaTime
+                    this.thrust.y -= 6 * (this.deltaTime) 
                     this.climbing = true
                 }
                 this.keyMap = {}
@@ -301,44 +305,44 @@ class NewScene{
 
             this.yawing = false
             this.banking = false
-            if (this.keyMap['a']){
+            if (this.keyMap['a'] || this.hoverTouch['1']){
                 if(this.rotorBody.angularVelocity.y < 15.0){
-                    this.rotorBody.angularVelocity.y += 1.5 * this.deltaTime
+                    this.rotorBody.angularVelocity.y += 1.5 * this.deltaTime / 1.5
                     this.yawing = true
                 if(this.thrust.x >= -10.0){
-                    this.thrust.x -= 1.5 * this.deltaTime
+                    this.thrust.x -= 1.5 * this.deltaTime /1.5
                     }
                     this.banking = true
                 }
                 this.keyMap = {}
             }
             
-            if (this.keyMap['d']){
+            if (this.keyMap['d'] || this.hoverTouch['2']){
                 if(this.rotorBody.angularVelocity.y > -15.0){
-                    this.rotorBody.angularVelocity.y -= 1.5 * this.deltaTime
+                    this.rotorBody.angularVelocity.y -= 1.5 * this.deltaTime / 1.5
                     this.yawing = true
                 }
                 if(this.thrust.x <= 10.0){
-                    this.thrust.x += 1.5 * this.deltaTime
+                    this.thrust.x += 1.5 * this.deltaTime / 1.5
                 }
                 this.banking = true
                 this.keyMap = {}
             }
 
             this.pitching = false
-            if(this.keyMap['s']){
-                if(this.thrust.z >= -35.0){
-                    this.thrust.z -= 3.75 * this.deltaTime
+            if(this.keyMap['s'] || this.hoverTouch['4']){
+                if(this.thrust.z >= -25.0){
+                    this.thrust.z -= 0.5 * this.deltaTime
                     this.pitching = true     
                 }
-                //this.keyMap = {} 
+                
             }
-            if(this.keyMap['w']){
-                if(this.thrust.z <= 35.0){
-                    this.thrust.z += 3.5 * this.deltaTime
+            if(this.keyMap['w'] || this.hoverTouch['3']){
+                if(this.thrust.z <= 25.0){
+                    this.thrust.z += 2.5 * this.deltaTime
                     this.pitching = true     
                 }
-                //this.keyMap = {} 
+                
             }
 
             if(!this.yawing){
@@ -374,8 +378,6 @@ class NewScene{
             //     this.thrust.y = 3
             // }
 
-            //console.log(this.thrust.y)
-
             this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())
             if(this.heliMesh){
                 this.camera.lookAt(this.heliMesh.position)
@@ -384,8 +386,10 @@ class NewScene{
             if(this.v.y < 1){
                 this.v.y = 1
             }
-            this.camera.position.lerpVectors(this.camera.position, this.v, 0.5)
+            
+            this.camera.position.lerpVectors(this.camera.position, this.v, 1)
         }
+            console.log(this.thrust)
             this.renderer.render(this.scene, this.camera)
             this.stats.update() 
             this.Update()
