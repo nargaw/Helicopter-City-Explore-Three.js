@@ -64,8 +64,8 @@ class NewScene{
             this.defaultMaterial,
             this.defaultMaterial,
             {
-                friction: 0.01,
-                restitution: 0.01
+                friction: 0,
+                restitution: 0
             }
         )
         this.world.broadphase = new CANNON.SAPBroadphase(this.world)
