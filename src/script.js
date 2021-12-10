@@ -183,7 +183,7 @@ class NewScene{
 
                 this.rotorShape = new CANNON.Sphere(0.1)
                 this.rotorBody = new CANNON.Body({
-                    mass: 0.125,
+                    mass: 0.12,
                     material: this.defaultMaterial
                 })
                 this.rotorBody.addShape(this.rotorShape)
@@ -289,15 +289,15 @@ class NewScene{
             
             this.climbing = false
             if (this.keyMap['e'] || this.hoverTouch['5']){
-                if(this.thrust.y < 40){
-                    this.thrust.y += 5 * (this.deltaTime)
+                if(this.thrust.y < 80){
+                    this.thrust.y += 5 * (this.deltaTime) * 4.75
                     this.climbing = true
                 }
                 this.keyMap = {}
             }
             if(this.keyMap['q'] || this.hoverTouch['6']){
                 if(this.thrust.y > 3){
-                    this.thrust.y -= 6 * (this.deltaTime) 
+                    this.thrust.y -= 5 * (this.deltaTime) * 2.75 
                     this.climbing = true
                 }
                 this.keyMap = {}
