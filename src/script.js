@@ -159,7 +159,7 @@ class NewScene{
                 this.scene.add(gltf.scene)
                 //console.log(gltf)
                 this.helicopterBody = new CANNON.Body({
-                    mass: 0.012,
+                    mass: 0.0125,
                     material: this.defaultMaterial
                 })
                 this.helicopterShape = new CANNON.Box(new CANNON.Vec3(3., 0.05, 2.0))
@@ -183,7 +183,7 @@ class NewScene{
 
                 this.rotorShape = new CANNON.Sphere(0.1)
                 this.rotorBody = new CANNON.Body({
-                    mass: 0.125,
+                    mass: 0.12,
                     material: this.defaultMaterial
                 })
                 this.rotorBody.addShape(this.rotorShape)
@@ -290,14 +290,14 @@ class NewScene{
             this.climbing = false
             if (this.keyMap['e'] || this.hoverTouch['5']){
                 if(this.thrust.y < 40){
-                    this.thrust.y += 5 * (this.deltaTime) * 4.75
+                    this.thrust.y += 5 * this.deltaTime
                     this.climbing = true
                 }
                 this.keyMap = {}
             }
             if(this.keyMap['q'] || this.hoverTouch['6']){
                 if(this.thrust.y > 3){
-                    this.thrust.y -= 5 * (this.deltaTime) * 3.0
+                    this.thrust.y -= 5 * this.deltaTime * 2.75
                     this.climbing = true
                 }
                 this.keyMap = {}
@@ -389,7 +389,7 @@ class NewScene{
             
             this.camera.position.lerpVectors(this.camera.position, this.v, 1)
         }
-            console.log(this.thrust)
+            console.log(this.thrust.y)
             this.renderer.render(this.scene, this.camera)
             this.stats.update() 
             this.Update()
