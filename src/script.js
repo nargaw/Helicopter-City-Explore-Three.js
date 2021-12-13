@@ -162,7 +162,7 @@ class NewScene{
                     mass: 0.0125,
                     material: this.defaultMaterial
                 })
-                this.helicopterShape = new CANNON.Box(new CANNON.Vec3(3., 0.05, 2.0))
+                this.helicopterShape = new CANNON.Box(new CANNON.Vec3(3., 1.5, 2.0))
                 this.helicopterBody.addShape(this.helicopterShape)
                 if(this.heliMesh){
                     this.helicopterBody.position.copy(this.heliMesh.position)
@@ -172,6 +172,7 @@ class NewScene{
                 this.world.addBody(this.helicopterBody)
 
                 this.helicopterBody.addShape(new CANNON.Box(new CANNON.Vec3(3.0, 0.5, 2.5)), new CANNON.Vec3(0, -1.6, 0))
+                //this.helicopterBody.addShape(new CANNON.Sphere(0.5), new CANNON.Vec3(0.0, 0.25, 0.0))
                 
                 if(this.heliMesh){
                     //console.log(this.heliMesh)
@@ -284,7 +285,7 @@ class NewScene{
                 this.object.mesh.quaternion.copy(this.object.body.quaternion)
             }
 
-            this.rotorMesh.rotateY(this.elapsedTime * this.thrust.y * 40)
+            this.rotorMesh.rotateY(this.elapsedTime * this.thrust.y * 50)
             this.rotorMesh.position.copy(this.rotorBody.position)
             
             this.climbing = false
@@ -294,13 +295,16 @@ class NewScene{
                     this.climbing = true
                 }
                 this.keyMap = {}
+                this.hoverTouch = {}
             }
             if(this.keyMap['q'] || this.hoverTouch['6']){
                 if(this.thrust.y > 3){
                     this.thrust.y -= 5 * this.deltaTime * 2.75
+                    //this.thrust.y = 3
                     this.climbing = true
                 }
                 this.keyMap = {}
+                this.hoverTouch = {}
             }
 
             this.yawing = false
@@ -315,6 +319,7 @@ class NewScene{
                     this.banking = true
                 }
                 this.keyMap = {}
+                this.hoverTouch = {}
             }
             
             if (this.keyMap['d'] || this.hoverTouch['2']){
@@ -327,22 +332,25 @@ class NewScene{
                 }
                 this.banking = true
                 this.keyMap = {}
+                this.hoverTouch = {}
             }
 
             this.pitching = false
             if(this.keyMap['s'] || this.hoverTouch['4']){
-                if(this.thrust.z >= -25.0){
-                    this.thrust.z -= 0.5 * this.deltaTime
+                if(this.thrust.z >= 0.0){
+                    this.thrust.z -= 15.0 * this.deltaTime
                     this.pitching = true     
                 }
-                
+                this.keyMap = {}
+                this.hoverTouch = {}
             }
             if(this.keyMap['w'] || this.hoverTouch['3']){
-                if(this.thrust.z <= 25.0){
-                    this.thrust.z += 2.5 * this.deltaTime
+                if(this.thrust.z <= 15.0 && this.heliMesh.position.y > 5){
+                    this.thrust.z += 5.5 * this.deltaTime
                     this.pitching = true     
                 }
-                
+                this.keyMap = {}
+                this.hoverTouch = {}
             }
 
             if(!this.yawing){
@@ -356,14 +364,14 @@ class NewScene{
 
             this.helicopterBody.angularVelocity.y = this.rotorBody.angularVelocity.y
 
-            if(!this.pitching){
-                if(this.thrust.z < 0){
-                    this.thrust.z += 3.5 * this.deltaTime
-                }
-                if(this.thrust.z > 0){
-                    this.thrust.z -= 3.5 * this.deltaTime
-                }
-            }
+            // if(!this.pitching){
+            //     if(this.thrust.z < 0){
+            //         this.thrust.z += 0.5 * this.deltaTime
+            //     }
+            //     if(this.thrust.z > 0){
+            //         this.thrust.z -= 0.5 * this.deltaTime
+            //     }
+            // }
 
             if(!this.banking){
                 if(this.thrust.x < 0){
@@ -374,8 +382,8 @@ class NewScene{
                 }
             }
 
-            // if(this.climbing == false && this.heliMesh.position.y > 50){
-            //     this.thrust.y = 3
+            // if(this.climbing == false){
+            //      this.thrust.y = 4.5
             // }
 
             this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())
@@ -389,7 +397,7 @@ class NewScene{
             
             this.camera.position.lerpVectors(this.camera.position, this.v, 1)
         }
-            console.log(this.thrust.y)
+            console.log(this.thrust.z)
             this.renderer.render(this.scene, this.camera)
             this.stats.update() 
             this.Update()
