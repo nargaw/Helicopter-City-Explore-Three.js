@@ -295,7 +295,6 @@ class NewScene{
                     this.climbing = true
                 }
                 this.keyMap = {}
-                this.hoverTouch = {}
             }
             if(this.keyMap['q'] || this.hoverTouch['6']){
                 if(this.thrust.y > 3){
@@ -304,7 +303,6 @@ class NewScene{
                     this.climbing = true
                 }
                 this.keyMap = {}
-                this.hoverTouch = {}
             }
 
             this.yawing = false
@@ -319,7 +317,6 @@ class NewScene{
                     this.banking = true
                 }
                 this.keyMap = {}
-                this.hoverTouch = {}
             }
             
             if (this.keyMap['d'] || this.hoverTouch['2']){
@@ -332,7 +329,6 @@ class NewScene{
                 }
                 this.banking = true
                 this.keyMap = {}
-                this.hoverTouch = {}
             }
 
             this.pitching = false
@@ -342,7 +338,6 @@ class NewScene{
                     this.pitching = true     
                 }
                 this.keyMap = {}
-                this.hoverTouch = {}
             }
             if(this.keyMap['w'] || this.hoverTouch['3']){
                 if(this.thrust.z <= 15.0 && this.heliMesh.position.y > 5){
@@ -350,7 +345,6 @@ class NewScene{
                     this.pitching = true     
                 }
                 this.keyMap = {}
-                this.hoverTouch = {}
             }
 
             if(!this.yawing){
