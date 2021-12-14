@@ -30,7 +30,6 @@ class NewScene{
         this.stableLift = 14.7
         this.thrust = new CANNON.Vec3(0, 5, 0)
         
-        this.InitCamera()
         this.InitStats()
         this.InitPhysics()
         this.InitPhysicsDebugger()
@@ -38,9 +37,10 @@ class NewScene{
         this.InitEnv()
         this.InitBuildings()
         this.InitHeliControls()
+        this.InitCamera()
         this.InitLights()
         this.InitRenderer()
-        //this.InitControls()
+        this.InitControls()
         this.Update()
         window.addEventListener('resize', () => {
             this.Resize()
@@ -108,14 +108,24 @@ class NewScene{
             material: this.defaultMaterial
         })
         this.world.addBody(this.ceiling)
-        this.ceiling.addShape(new CANNON.Box(new CANNON.Vec3(10000, 2, 10000)))
+        this.ceiling.addShape(new CANNON.Box(new CANNON.Vec3(5000, 2, 5000)))
         //this.ceiling.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5)
         this.ceiling.position.set(0, 600, 0)
+
+        this.wall = new CANNON.Body({
+            mass: 0,
+            material: this.defaultMaterial
+        })
+        this.world.addBody(this.wall)
+        this.wall.addShape(new CANNON.Box(new CANNON.Vec3(2, 750, 5000)), new CANNON.Vec3(-5000, 0, 0))
+        this.wall.addShape(new CANNON.Box(new CANNON.Vec3(2, 750, 5000)), new CANNON.Vec3(5000, 0, 0))
+        this.wall.addShape(new CANNON.Box(new CANNON.Vec3(5000, 750, 2)), new CANNON.Vec3(0, 0, -5000))
+        this.wall.addShape(new CANNON.Box(new CANNON.Vec3(5000, 750, 2)), new CANNON.Vec3(0, 0, 5000))
     }
 
     InitBuildings(){
         this.buildingMaterial = new THREE.MeshStandardMaterial()
-        for (let i = 0; i <= 250; i++){
+        for (let i = 0; i <= 5; i++){
             this.rand = 150 + Math.random() * 150;
             this.x = Math.round(Math.random()*100+100)
             this.z = Math.round(Math.random()*100+100)
@@ -229,15 +239,7 @@ class NewScene{
         }
     }
 
-    InitCamera(){
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100000)
-        this.chaseCam = new THREE.Object3D()
-        this.chaseCam.position.set(0, 0, 0)
-        this.chaseCamPivot = new THREE.Object3D()
-        this.chaseCamPivot.position.set(-75, 50, 0)
-        this.chaseCam.add(this.chaseCamPivot)
-        this.scene.add(this.chaseCam)
-    }
+    
 
     InitLights(){
         this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
@@ -259,9 +261,22 @@ class NewScene{
         this.renderer.render(this.scene, this.camera)
     }
 
+    InitCamera(){
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100000)
+        this.camera.position.set(0, 500, 250)
+        this.scene.add(this.camera)
+        this.chaseCam = new THREE.Object3D()
+        this.chaseCam.position.set(0, 0, 0)
+        this.chaseCamPivot = new THREE.Object3D()
+        this.chaseCamPivot.position.set(-75, 50, 0)
+        this.chaseCam.add(this.chaseCamPivot)
+        this.scene.add(this.chaseCam)
+    }
+
     InitControls(){
         this.controls = new OrbitControls(this.camera, canvas)
         this.controls.enableDamping = true
+        this.controls.enablePan = true
         this.controls.update()   
     }
 
@@ -308,11 +323,11 @@ class NewScene{
             this.yawing = false
             this.banking = false
             if (this.keyMap['a'] || this.hoverTouch['1']){
-                if(this.rotorBody.angularVelocity.y < 15.0){
-                    this.rotorBody.angularVelocity.y += 1.5 * this.deltaTime / 1.5
+                if(this.rotorBody.angularVelocity.y < 2.5){
+                    this.rotorBody.angularVelocity.y += 1.25 * this.deltaTime / 1.5
                     this.yawing = true
-                if(this.thrust.x >= -10.0){
-                    this.thrust.x -= 1.5 * this.deltaTime /1.5
+                if(this.thrust.x >= -2.5){
+                    this.thrust.x -= 1.25 * this.deltaTime /1.5
                     }
                     this.banking = true
                 }
@@ -320,12 +335,12 @@ class NewScene{
             }
             
             if (this.keyMap['d'] || this.hoverTouch['2']){
-                if(this.rotorBody.angularVelocity.y > -15.0){
-                    this.rotorBody.angularVelocity.y -= 1.5 * this.deltaTime / 1.5
+                if(this.rotorBody.angularVelocity.y > -2.5){
+                    this.rotorBody.angularVelocity.y -= 1.0 * this.deltaTime / 1.5
                     this.yawing = true
                 }
-                if(this.thrust.x <= 10.0){
-                    this.thrust.x += 1.5 * this.deltaTime / 1.5
+                if(this.thrust.x <= 2.5){
+                    this.thrust.x += 1.0 * this.deltaTime / 1.5
                 }
                 this.banking = true
                 this.keyMap = {}
@@ -340,7 +355,7 @@ class NewScene{
                 this.keyMap = {}
             }
             if(this.keyMap['w'] || this.hoverTouch['3']){
-                if(this.thrust.z <= 15.0 && this.heliMesh.position.y > 5){
+                if(this.thrust.z <= 40.0 && this.heliMesh.position.y > 5){
                     this.thrust.z += 5.5 * this.deltaTime
                     this.pitching = true     
                 }
@@ -358,14 +373,14 @@ class NewScene{
 
             this.helicopterBody.angularVelocity.y = this.rotorBody.angularVelocity.y
 
-            // if(!this.pitching){
-            //     if(this.thrust.z < 0){
-            //         this.thrust.z += 0.5 * this.deltaTime
-            //     }
-            //     if(this.thrust.z > 0){
-            //         this.thrust.z -= 0.5 * this.deltaTime
-            //     }
-            // }
+            if(!this.pitching){
+                if(this.thrust.z < 0){
+                    this.thrust.z += 2.5 * this.deltaTime
+                }
+                if(this.thrust.z > 0){
+                    this.thrust.z -= 2.5 * this.deltaTime
+                }
+            }
 
             if(!this.banking){
                 if(this.thrust.x < 0){
@@ -380,21 +395,29 @@ class NewScene{
             //      this.thrust.y = 4.5
             // }
 
-            this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())
+            this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())  
+        }
             if(this.heliMesh){
-                this.camera.lookAt(this.heliMesh.position)
+            this.camera.lookAt(this.heliMesh.position)
+            if( this.heliMesh.position.x > 2500){
+                this.helicopterBody.position.set(0, 20, 0)
+                
+            }
             }
             this.chaseCamPivot.getWorldPosition(this.v)
             if(this.v.y < 1){
                 this.v.y = 1
             }
+        
+            this.camera.position.lerpVectors(this.camera.position, this.v, 0.5)
+            //console.log(this.thrust.z)
+
             
-            this.camera.position.lerpVectors(this.camera.position, this.v, 1)
-        }
-            console.log(this.thrust.z)
+            console.log(this.helicopterBody.position.x)
             this.renderer.render(this.scene, this.camera)
-            this.stats.update() 
+            this.controls.update()
             this.Update()
+            this.stats.update()
         })  
     }
 }
