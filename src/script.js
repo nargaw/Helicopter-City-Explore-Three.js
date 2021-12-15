@@ -324,7 +324,7 @@ class NewScene{
             this.banking = false
             if (this.keyMap['a'] || this.hoverTouch['1']){
                 if(this.rotorBody.angularVelocity.y < 2.5){
-                    this.rotorBody.angularVelocity.y += 1.25 * this.deltaTime / 1.5
+                    this.rotorBody.angularVelocity.y += 1.5 * this.deltaTime 
                     this.yawing = true
                 if(this.thrust.x >= -2.5){
                     this.thrust.x -= 1.25 * this.deltaTime /1.5
@@ -336,11 +336,11 @@ class NewScene{
             
             if (this.keyMap['d'] || this.hoverTouch['2']){
                 if(this.rotorBody.angularVelocity.y > -2.5){
-                    this.rotorBody.angularVelocity.y -= 1.0 * this.deltaTime / 1.5
+                    this.rotorBody.angularVelocity.y -= 1.5 * this.deltaTime 
                     this.yawing = true
                 }
                 if(this.thrust.x <= 2.5){
-                    this.thrust.x += 1.0 * this.deltaTime / 1.5
+                    this.thrust.x += 1.25 * this.deltaTime / 1.5
                 }
                 this.banking = true
                 this.keyMap = {}
@@ -355,8 +355,8 @@ class NewScene{
                 this.keyMap = {}
             }
             if(this.keyMap['w'] || this.hoverTouch['3']){
-                if(this.thrust.z <= 40.0 && this.heliMesh.position.y > 5){
-                    this.thrust.z += 5.5 * this.deltaTime
+                if(this.thrust.z <= 60.0 && this.heliMesh.position.y > 5){
+                    this.thrust.z += 15.0 * this.deltaTime
                     this.pitching = true     
                 }
                 this.keyMap = {}
