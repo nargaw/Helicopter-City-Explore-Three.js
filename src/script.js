@@ -169,7 +169,6 @@ class NewScene{
                     if(child.name === 'heli'){
                         this.heliMesh = child
                         // this.heliMesh.rotation.y = -Math.PI * 0.5
-                        
                         this.heliMesh.add(this.chaseCam)
                     }
                 })
@@ -232,19 +231,15 @@ class NewScene{
 
     InitHeliControls(){
         this.onDocumentKey = (e) => {
-            e.preventDefault()
             this.keyMap[e.key] = 'keydown'
         }
         this.onDocumentKeyUp = (e) => {
-            e.preventDefault()
             this.keyMapUp[e.key] = 'keydown'
         }
         this.onDocumentKeyForward = (e) => {
-            e.preventDefault()
             this.keyMapForward[e.key] = 'keydown'
         }
         this.onDocumentKeyTurn = (e) => {
-            e.preventDefault()
             this.keyMapTurn[e.key] = 'keydown'
         }
         this.onDocumentTouch = (e) => {
@@ -258,8 +253,6 @@ class NewScene{
             this.hoverTouch[e.target.id] = e.type === 'touchstart'
         }
     }
-
-    
 
     InitLights(){
         this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
@@ -288,7 +281,7 @@ class NewScene{
         this.chaseCam = new THREE.Object3D()
         this.chaseCam.position.set(0, 0, 0)
         this.chaseCamPivot = new THREE.Object3D()
-        this.chaseCamPivot.position.set(-75, 20, 0)
+        this.chaseCamPivot.position.set(-75, 40, 0)
         this.chaseCam.add(this.chaseCamPivot)
         this.scene.add(this.chaseCam)
     }
@@ -333,7 +326,7 @@ class NewScene{
             }
             if(this.keyMapUp['q'] || this.hoverTouch['6']){
                 if(this.thrust.y > 3){
-                    this.thrust.y -= 5 * this.deltaTime * 2.75
+                    this.thrust.y -= 5 * this.deltaTime 
                     //this.thrust.y = 3
                     this.climbing = true
                 }
@@ -375,8 +368,8 @@ class NewScene{
                 this.keyMapForward = {}
             }
             if(this.keyMapForward['w'] || this.hoverTouch['3']){
-                if(this.thrust.z <= 35.0 && this.heliMesh.position.y > 5){
-                    this.thrust.z += 10.0 * this.deltaTime
+                if(this.thrust.z <= 25.0 && this.heliMesh.position.y > 5){
+                    this.thrust.z += 5.0 * this.deltaTime * 1.25
                     this.pitching = true     
                 }
                 this.keyMapForward = {}
@@ -404,10 +397,10 @@ class NewScene{
 
             if(!this.banking){
                 if(this.thrust.x < 0){
-                    this.thrust.x += 2.5 * this.deltaTime
+                    this.thrust.x += 5.5 * this.deltaTime
                 }
                 if(this.thrust.x > 0){
-                    this.thrust.x -= 2.5 * this.deltaTime
+                    this.thrust.x -= 5.5 * this.deltaTime
                 }
             }
 
@@ -418,11 +411,7 @@ class NewScene{
             this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())  
         }
             if(this.heliMesh){
-            this.camera.lookAt(this.heliMesh.position)
-            if( this.heliMesh.position.x > 2500){
-                this.helicopterBody.position.set(0, 20, 0)
-                
-            }
+                this.camera.lookAt(this.heliMesh.position)
             }
             this.chaseCamPivot.getWorldPosition(this.v)
             if(this.v.y < 1){
@@ -430,10 +419,7 @@ class NewScene{
             }
         
             this.camera.position.lerpVectors(this.camera.position, this.v, 0.5)
-            //console.log(this.thrust.z)
-
             
-            //console.log(this.helicopterBody.position.x)
             this.renderer.render(this.scene, this.camera)
             this.controls.update()
             this.Update()
