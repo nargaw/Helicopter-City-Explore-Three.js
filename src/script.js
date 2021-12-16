@@ -20,6 +20,9 @@ class NewScene{
         this.v = new THREE.Vector3()
         this.objectsToUpdate = []
         this.keyMap = {}
+        this.keyMapForward = {}
+        this.keyMapUp = {}
+        this.keyMapTurn = {}
         this.hoverTouch = {}
         this.climbing = false
         this.banking = false
@@ -45,8 +48,12 @@ class NewScene{
         window.addEventListener('resize', () => {
             this.Resize()
         })
-        document.addEventListener('keydown', this.onDocumentKey, false)
-        document.addEventListener('keyup', this.onDocumentKey, false)
+        document.addEventListener('keydown', this.onDocumentKeyUp, false)
+        document.addEventListener('keyup', this.onDocumentKeyUp, false)
+        document.addEventListener('keydown', this.onDocumentKeyForward, false)
+        document.addEventListener('keyup', this.onDocumentKeyForward, false)
+        document.addEventListener('keydown', this.onDocumentKeyTurn, false)
+        document.addEventListener('keyup', this.onDocumentKeyTurn, false)
         document.addEventListener('touchstart', this.onDocumentTouch, {passive: false} )
         document.addEventListener('touchend', this.onDocumentTouch, {passive: false}, false)
     }
@@ -207,7 +214,7 @@ class NewScene{
 
                 this.rotorConstraint = new CANNON.PointToPointConstraint(
                     this.helicopterBody,
-                    new CANNON.Vec3(0, 0.1, 0),
+                    new CANNON.Vec3(0, 0.001, 0),
                     this.rotorBody,
                     new CANNON.Vec3(0, 0, 0)
                 )
@@ -225,7 +232,20 @@ class NewScene{
 
     InitHeliControls(){
         this.onDocumentKey = (e) => {
+            e.preventDefault()
             this.keyMap[e.key] = 'keydown'
+        }
+        this.onDocumentKeyUp = (e) => {
+            e.preventDefault()
+            this.keyMapUp[e.key] = 'keydown'
+        }
+        this.onDocumentKeyForward = (e) => {
+            e.preventDefault()
+            this.keyMapForward[e.key] = 'keydown'
+        }
+        this.onDocumentKeyTurn = (e) => {
+            e.preventDefault()
+            this.keyMapTurn[e.key] = 'keydown'
         }
         this.onDocumentTouch = (e) => {
             e.preventDefault()
@@ -268,7 +288,7 @@ class NewScene{
         this.chaseCam = new THREE.Object3D()
         this.chaseCam.position.set(0, 0, 0)
         this.chaseCamPivot = new THREE.Object3D()
-        this.chaseCamPivot.position.set(-75, 50, 0)
+        this.chaseCamPivot.position.set(-75, 20, 0)
         this.chaseCam.add(this.chaseCamPivot)
         this.scene.add(this.chaseCam)
     }
@@ -304,62 +324,62 @@ class NewScene{
             this.rotorMesh.position.copy(this.rotorBody.position)
             
             this.climbing = false
-            if (this.keyMap['e'] || this.hoverTouch['5']){
+            if (this.keyMapUp['e'] || this.hoverTouch['5']){
                 if(this.thrust.y < 40){
                     this.thrust.y += 5 * this.deltaTime
                     this.climbing = true
                 }
-                this.keyMap = {}
+                this.keyMapUp = {}
             }
-            if(this.keyMap['q'] || this.hoverTouch['6']){
+            if(this.keyMapUp['q'] || this.hoverTouch['6']){
                 if(this.thrust.y > 3){
                     this.thrust.y -= 5 * this.deltaTime * 2.75
                     //this.thrust.y = 3
                     this.climbing = true
                 }
-                this.keyMap = {}
+                this.keyMapUp = {}
             }
 
             this.yawing = false
             this.banking = false
-            if (this.keyMap['a'] || this.hoverTouch['1']){
-                if(this.rotorBody.angularVelocity.y < 2.5){
-                    this.rotorBody.angularVelocity.y += 1.5 * this.deltaTime 
+            if (this.keyMapTurn['a'] || this.hoverTouch['1']){
+                if(this.rotorBody.angularVelocity.y < 2.0){
+                    this.rotorBody.angularVelocity.y += 0.85 * this.deltaTime 
                     this.yawing = true
                 if(this.thrust.x >= -2.5){
                     this.thrust.x -= 1.25 * this.deltaTime /1.5
                     }
                     this.banking = true
                 }
-                this.keyMap = {}
+                this.keyMapTurn = {}
             }
             
-            if (this.keyMap['d'] || this.hoverTouch['2']){
-                if(this.rotorBody.angularVelocity.y > -2.5){
-                    this.rotorBody.angularVelocity.y -= 1.5 * this.deltaTime 
+            if (this.keyMapTurn['d'] || this.hoverTouch['2']){
+                if(this.rotorBody.angularVelocity.y > -2.0){
+                    this.rotorBody.angularVelocity.y -= 0.85 * this.deltaTime 
                     this.yawing = true
                 }
                 if(this.thrust.x <= 2.5){
                     this.thrust.x += 1.25 * this.deltaTime / 1.5
                 }
                 this.banking = true
-                this.keyMap = {}
+                this.keyMapTurn = {}
             }
 
             this.pitching = false
-            if(this.keyMap['s'] || this.hoverTouch['4']){
+            if(this.keyMapForward['s'] || this.hoverTouch['4']){
                 if(this.thrust.z >= 0.0){
                     this.thrust.z -= 15.0 * this.deltaTime
                     this.pitching = true     
                 }
-                this.keyMap = {}
+                this.keyMapForward = {}
             }
-            if(this.keyMap['w'] || this.hoverTouch['3']){
-                if(this.thrust.z <= 60.0 && this.heliMesh.position.y > 5){
-                    this.thrust.z += 15.0 * this.deltaTime
+            if(this.keyMapForward['w'] || this.hoverTouch['3']){
+                if(this.thrust.z <= 35.0 && this.heliMesh.position.y > 5){
+                    this.thrust.z += 10.0 * this.deltaTime
                     this.pitching = true     
                 }
-                this.keyMap = {}
+                this.keyMapForward = {}
             }
 
             if(!this.yawing){
@@ -413,7 +433,7 @@ class NewScene{
             //console.log(this.thrust.z)
 
             
-            console.log(this.helicopterBody.position.x)
+            //console.log(this.helicopterBody.position.x)
             this.renderer.render(this.scene, this.camera)
             this.controls.update()
             this.Update()
