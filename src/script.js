@@ -36,14 +36,14 @@ class NewScene{
         this.InitStats()
         this.HeliGLTF()
         this.InitPhysics()
-        this.InitPhysicsDebugger()
+        //this.InitPhysicsDebugger()
         this.InitEnv()
         this.InitBuildings()
         this.InitHeliControls()
         this.InitCamera()
         this.InitLights()
         this.InitRenderer()
-        this.InitControls()
+        //this.InitControls()
         this.Update()
         window.addEventListener('resize', () => {
             this.Resize()
@@ -102,6 +102,9 @@ class NewScene{
         this.plane.rotation.x = -Math.PI * 0.5
         this.scene.add(this.plane)
 
+        this.fog = new THREE.Fog(0x191919, 4000, 5000)
+        this.scene.fog = this.fog
+
         this.groundBody = new CANNON.Body({
             mass: 0,
             material: this.defaultMaterial
@@ -121,13 +124,13 @@ class NewScene{
     }
 
     InitBuildings(){
-        this.buildingMaterial = new THREE.MeshStandardMaterial()
-        for (let i = 0; i <= 5; i++){
-            this.rand = 150 + Math.random() * 150;
+        this.buildingMaterial = new THREE.MeshStandardMaterial({ color: 0x191919})
+        for (let i = 0; i <= 250; i++){
+            this.rand = 250 + Math.random() * 250;
             this.x = Math.round(Math.random()*100+100)
             this.z = Math.round(Math.random()*100+100)
-            this.angle = Math.random() * Math.PI * 20
-            this.radius = 100 + Math.random() * 5000
+            this.angle = Math.random() * Math.PI * 200
+            this.radius = 500 + Math.random() * 5000
             this.posX = Math.cos(this.angle) * this.radius
             this.posZ = Math.sin(this.angle) * this.radius
             this.building = new THREE.Mesh(new THREE.BoxGeometry(this.x, this.rand, this.z), this.buildingMaterial)
@@ -147,7 +150,7 @@ class NewScene{
 
     HeliGLTF(){
        this.gltfLoader = new GLTFLoader()
-       this.meshMaterial = new THREE.MeshNormalMaterial()
+       this.meshMaterial = new THREE.MeshStandardMaterial({color: 0xffff00})
         this.gltfLoader.load(
             'heli2.glb', (gltf) => {
                 gltf.scene.traverse((child) => {
@@ -224,6 +227,7 @@ class NewScene{
             this.keyMap[e.key] = 'keydown'
         }
         this.onDocumentKeyUp = (e) => {
+            e.preventDefault()
             this.keyMapUp[e.key] = 'keydown'
         }
         this.onDocumentKeyForward = (e) => {
@@ -247,7 +251,7 @@ class NewScene{
     InitLights(){
         this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
         this.scene.add(this.ambientLight)
-        this.pointLight = new THREE.PointLight(0xffffff, 1.5, 1000)
+        this.pointLight = new THREE.PointLight(0xffffff, 2.0, 5000)
         this.pointLight.position.set(0, 500, 0)
         this.scene.add(this.pointLight)
     }
@@ -411,7 +415,7 @@ class NewScene{
             this.camera.position.lerpVectors(this.camera.position, this.v, 0.5)
             
             this.renderer.render(this.scene, this.camera)
-            this.controls.update()
+            //this.controls.update()
             this.Update()
             this.stats.update()
         })  
