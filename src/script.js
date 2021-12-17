@@ -34,9 +34,9 @@ class NewScene{
         this.thrust = new CANNON.Vec3(0, 5, 0)
         
         this.InitStats()
+        this.HeliGLTF()
         this.InitPhysics()
         this.InitPhysicsDebugger()
-        this.HeliGLTF()
         this.InitEnv()
         this.InitBuildings()
         this.InitHeliControls()
@@ -115,19 +115,9 @@ class NewScene{
             material: this.defaultMaterial
         })
         this.world.addBody(this.ceiling)
-        this.ceiling.addShape(new CANNON.Box(new CANNON.Vec3(5000, 2, 5000)))
+        this.ceiling.addShape(new CANNON.Box(new CANNON.Vec3(15000, 2, 15000)))
         //this.ceiling.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5)
         this.ceiling.position.set(0, 600, 0)
-
-        this.wall = new CANNON.Body({
-            mass: 0,
-            material: this.defaultMaterial
-        })
-        this.world.addBody(this.wall)
-        this.wall.addShape(new CANNON.Box(new CANNON.Vec3(2, 750, 5000)), new CANNON.Vec3(-5000, 0, 0))
-        this.wall.addShape(new CANNON.Box(new CANNON.Vec3(2, 750, 5000)), new CANNON.Vec3(5000, 0, 0))
-        this.wall.addShape(new CANNON.Box(new CANNON.Vec3(5000, 750, 2)), new CANNON.Vec3(0, 0, -5000))
-        this.wall.addShape(new CANNON.Box(new CANNON.Vec3(5000, 750, 2)), new CANNON.Vec3(0, 0, 5000))
     }
 
     InitBuildings(){
