@@ -34,14 +34,15 @@ class NewScene{
         this.tpCache = new Array()
         this.stableLift = 14.7
         this.thrust = new CANNON.Vec3(0, 5, 0)
+        this.euler1 = new THREE.Euler(-1, 0, 0, 'XYZ')
         
         this.InitStats()
         this.HeliGLTF()
-        this.BuildingsGLTF()
+        //this.BuildingsGLTF()
         this.InitPhysics()
         this.InitPhysicsDebugger()
         this.InitEnv()
-        //this.InitBuildings()
+        this.InitBuildings()
         this.InitHeliControls()
         this.InitCamera()
         this.InitLights()
@@ -51,12 +52,8 @@ class NewScene{
         window.addEventListener('resize', () => {
             this.Resize()
         })
-        document.addEventListener('keydown', this.onDocumentKeyUp, false)
-        document.addEventListener('keyup', this.onDocumentKeyUp, false)
-        document.addEventListener('keydown', this.onDocumentKeyForward, false)
-        document.addEventListener('keyup', this.onDocumentKeyForward, false)
-        document.addEventListener('keydown', this.onDocumentKeyTurn, false)
-        document.addEventListener('keyup', this.onDocumentKeyTurn, false)
+        document.addEventListener('keydown', this.onDocumentKey, false)
+        document.addEventListener('keyup', this.onDocumentKey, false)
         document.addEventListener('mouseover', this.onDocumentHover, false)
         document.addEventListener('mouseout', this.onDocumentHover, false)
         document.addEventListener('touchstart', this.onDocumentTouch, {passive: false} )
@@ -107,7 +104,7 @@ class NewScene{
         this.plane.rotation.x = -Math.PI * 0.5
         this.scene.add(this.plane)
 
-        this.fog = new THREE.FogExp2(0xffffff, 0.0025)
+        this.fog = new THREE.FogExp2(0xffffff, 0.0005)
         this.scene.fog = this.fog
 
         this.groundBody = new CANNON.Body({
@@ -125,42 +122,42 @@ class NewScene{
         this.world.addBody(this.ceiling)
         this.ceiling.addShape(new CANNON.Box(new CANNON.Vec3(15000, 2, 15000)))
         //this.ceiling.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5)
-        this.ceiling.position.set(0, 250, 0)
+        this.ceiling.position.set(0, 450, 0)
     }
 
-    // InitBuildings(){
-    //     this.buildingMaterial = new THREE.MeshStandardMaterial({ color: 0x191919})
-    //     for (let i = 0; i <= 250; i++){
-    //         this.rand = 250 + Math.random() * 250;
-    //         this.x = Math.round(Math.random()*100+100)
-    //         this.z = Math.round(Math.random()*100+100)
-    //         this.angle = Math.random() * Math.PI * 200
-    //         this.radius = 500 + Math.random() * 5000
-    //         this.posX = Math.cos(this.angle) * this.radius
-    //         this.posZ = Math.sin(this.angle) * this.radius
-    //         this.building = new THREE.Mesh(new THREE.BoxGeometry(this.x, this.rand, this.z), this.buildingMaterial)
-    //         this.scene.add(this.building)
-    //         this.building.position.set(this.posX, this.rand/2, this.posZ)
+    InitBuildings(){
+        this.buildingMaterial = new THREE.MeshStandardMaterial({ color: 0x191919})
+        for (let i = 0; i <= 250; i++){
+            this.rand = 250 + Math.random() * 250;
+            this.x = Math.round(Math.random()*100+100)
+            this.z = Math.round(Math.random()*100+100)
+            this.angle = Math.random() * Math.PI * 200
+            this.radius = 500 + Math.random() * 5000
+            this.posX = Math.cos(this.angle) * this.radius
+            this.posZ = Math.sin(this.angle) * this.radius
+            this.building = new THREE.Mesh(new THREE.BoxGeometry(this.x, this.rand, this.z), this.buildingMaterial)
+            this.scene.add(this.building)
+            this.building.position.set(this.posX, this.rand/2, this.posZ)
         
-    //         this.buildingShape = new CANNON.Box(new CANNON.Vec3(this.x/2, this.rand/2, this.z/2))
-    //         this.buildingBody = new CANNON.Body({
-    //             mass: 0,
-    //             material: this.defaultMaterial
-    //         })
-    //         this.buildingBody.position.set(this.posX, this.rand/2, this.posZ)
-    //         this.buildingBody.addShape(this.buildingShape)
-    //         this.world.addBody(this.buildingBody)
-    //     }
-    // }
-
-    BuildingsGLTF(){
-        this.buildingMaterial = new THREE.MeshStandardMaterial()
-        this.gltfLoader.load(
-            'buildings.glb', (gltf) => {
-                this.scene.add(gltf.scene)
-            }
-        )
+            this.buildingShape = new CANNON.Box(new CANNON.Vec3(this.x/2, this.rand/2, this.z/2))
+            this.buildingBody = new CANNON.Body({
+                mass: 0,
+                material: this.defaultMaterial
+            })
+            this.buildingBody.position.set(this.posX, this.rand/2, this.posZ)
+            this.buildingBody.addShape(this.buildingShape)
+            this.world.addBody(this.buildingBody)
+        }
     }
+
+    // BuildingsGLTF(){
+    //     this.buildingMaterial = new THREE.MeshStandardMaterial()
+    //     this.gltfLoader.load(
+    //         'buildings.glb', (gltf) => {
+    //             this.scene.add(gltf.scene)
+    //         }
+    //     )
+    // }
 
     HeliGLTF(){
        
@@ -239,16 +236,6 @@ class NewScene{
     InitHeliControls(){
         this.onDocumentKey = (e) => {
             this.keyMap[e.key] = 'keydown'
-        }
-        this.onDocumentKeyUp = (e) => {
-            e.preventDefault()
-            this.keyMapUp[e.key] = 'keydown'
-        }
-        this.onDocumentKeyForward = (e) => {
-            this.keyMapForward[e.key] = 'keydown'
-        }
-        this.onDocumentKeyTurn = (e) => {
-            this.keyMapTurn[e.key] = 'keydown'
         }
         this.onDocumentHover = (e) => {
             e.preventDefault()
@@ -329,25 +316,28 @@ class NewScene{
             this.rotorMesh.position.copy(this.rotorBody.position)
             
             this.climbing = false
-            if (this.keyMapUp['e'] || this.hoverTouch['5'] || this.hoverMap['5']){
+            if (this.keyMap['e'] || this.hoverTouch['5'] || this.hoverMap['5']){
                 if(this.thrust.y < 40){
                     this.thrust.y += 5 * this.deltaTime
                     this.climbing = true
+                }if(this.thrust.y > 5) {
+                    this.keyMap = {}
                 }
-                this.keyMapUp = {}
+                
             }
-            if(this.keyMapUp['q'] || this.hoverTouch['6'] || this.hoverMap['6']){
+            if(this.keyMap['q'] || this.hoverTouch['6'] || this.hoverMap['6']){
                 if(this.thrust.y > 3){
-                    this.thrust.y -= 5 * this.deltaTime 
+                    this.thrust.y -= 12 * this.deltaTime
                     //this.thrust.y = 3
                     this.climbing = true
+                }else {
+                    this.keyMap = {}
                 }
-                this.keyMapUp = {}
             }
 
             this.yawing = false
             this.banking = false
-            if (this.keyMapTurn['a'] || this.hoverTouch['1'] || this.hoverMap['1']){
+            if (this.keyMap['a'] || this.hoverTouch['1'] || this.hoverMap['1']){
                 if(this.rotorBody.angularVelocity.y < 2.0){
                     this.rotorBody.angularVelocity.y += 0.85 * this.deltaTime 
                     this.yawing = true
@@ -356,10 +346,10 @@ class NewScene{
                     }
                     this.banking = true
                 }
-                this.keyMapTurn = {}
+                this.keyMap = {}
             }
             
-            if (this.keyMapTurn['d'] || this.hoverTouch['2'] || this.hoverMap['2']){
+            if (this.keyMap['d'] || this.hoverTouch['2'] || this.hoverMap['2']){
                 if(this.rotorBody.angularVelocity.y > -2.0){
                     this.rotorBody.angularVelocity.y -= 0.85 * this.deltaTime 
                     this.yawing = true
@@ -368,23 +358,26 @@ class NewScene{
                     this.thrust.x += 1.25 * this.deltaTime / 1.5
                 }
                 this.banking = true
-                this.keyMapTurn = {}
+                this.keyMap = {}
             }
 
             this.pitching = false
-            if(this.keyMapForward['s'] || this.hoverTouch['4'] || this.hoverMap['4']){
+            if(this.keyMap['s'] || this.hoverTouch['4'] || this.hoverMap['4']){
                 if(this.thrust.z >= 0.0){
                     this.thrust.z -= 15.0 * this.deltaTime
+                    
                     this.pitching = true     
                 }
-                this.keyMapForward = {}
+                this.keyMap = {}
             }
-            if(this.keyMapForward['w'] || this.hoverTouch['3'] || this.hoverMap['3']){
+            if(this.keyMap['w'] || this.hoverTouch['3'] || this.hoverMap['3']){
                 if(this.thrust.z <= 25.0 && this.heliMesh.position.y > 5){
                     this.thrust.z += 5.0 * this.deltaTime * 1.25
+                //    this.rotorMesh.rotation.x += 0.2
+                //    this.heliMesh.rotation.x += 0.2
                     this.pitching = true     
                 }
-                this.keyMapForward = {}
+                //this.keyMap = {}
             }
 
             if(!this.yawing){
@@ -418,6 +411,29 @@ class NewScene{
 
             // if(this.climbing == false){
             //      this.thrust.y = 4.5
+            // }
+
+            // if (!this.banking && !this.pitching && !this.climbing){
+            //     if(this.rotorBody.quaternion.x > 0){
+            //         this.rotorBody.quaternion.x -= 0.5
+            //     } 
+            //     if(this.rotorBody.quaternion.x < 0){
+            //         this.rotorBody.quaternion.x += 0.5
+            //     }
+                
+            //     if(this.rotorBody.quaternion.y > 0){
+            //         this.rotorBody.quaternion.y -= 0.5
+            //     } 
+            //     if(this.rotorBody.quaternion.y < 0){
+            //         this.rotorBody.quaternion.y += 0.5
+            //     }
+            //     if(this.rotorBody.quaternion.z > 0){
+            //         this.rotorBody.quaternion.z -= 0.5
+            //     } 
+            //     if(this.rotorBody.quaternion.z < 0){
+            //         this.rotorBody.quaternion.z += 0.5
+            //     }
+            //     this.helicopterBody.quaternion.copy(this.rotorBody.quaternion)
             // }
 
             this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())  
