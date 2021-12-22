@@ -28,9 +28,9 @@ class NewScene{
         this.yawing = false
         this.logEvents = false
         this.tpCache = new Array()
-        this.stableLift = 14.7
+        this.stableLift = 4.0
         this.thrust = new CANNON.Vec3(0, 5, 0)
-        this.downForce = new CANNON.Vec3(0.1, -1.95, 0)
+        this.downForce = new CANNON.Vec3(1.0, -0.000625, 0)
         this.InitStats()
         this.InitPhysics()
         this.InitPhysicsDebugger()
@@ -90,7 +90,7 @@ class NewScene{
     InitEnv(){
         this.planeGeomtery = new THREE.PlaneGeometry(10000, 10000)
         this.planeMaterial = new THREE.MeshStandardMaterial({
-            color: 0x144552,
+            color: 0x191919,
             side: THREE.DoubleSide
         })
         this.plane = new THREE.Mesh(this.planeGeomtery, this.planeMaterial)
@@ -364,8 +364,8 @@ class NewScene{
                 if(this.thrust.z <= 2.0 && this.heliMesh.position.y > 5){
                     this.thrust.z += 0.25 * this.deltaTime 
                     this.pitching = true
-                    this.helicopterBody.applyLocalForce(this.downForce, new CANNON.Vec3(),(new CANNON.Vec3(0, 0, -5.5)))
-                    this.thrust.y += 0.75 * this.deltaTime
+                    this.helicopterBody.applyLocalForce(this.downForce, new CANNON.Vec3(5.0, 0, 0),(new CANNON.Vec3(8, 0, 0.0)))
+                    this.thrust.y += 0.15 * this.deltaTime
                     // if(this.rotorBody.quaternion.x < 2.5){
                     //     this.rotorBody.quaternion.x += 0.1 * this.deltaTime
                     //     
@@ -400,6 +400,10 @@ class NewScene{
                     this.thrust.z -= 2.5 * this.deltaTime
                     
                 }
+            }
+
+            if(!this.climbing){
+                this.thrust.y = 4.0
             }
 
             // if(!this.pitching){
