@@ -20,6 +20,7 @@ class NewScene{
         this.v = new THREE.Vector3()
         this.gltfLoader = new GLTFLoader()
         this.objectsToUpdate = []
+        this.buildingMaterials = []
         this.hoverMap = {}
         this.hoverTouch = {}
         this.climbing = false
@@ -30,14 +31,13 @@ class NewScene{
         this.tpCache = new Array()
         this.stableLift = 4.0
         this.thrust = new CANNON.Vec3(0, 5, 0)
-        this.downForce = new CANNON.Vec3(1.0, -0.000625, 0)
+        this.downForce = new CANNON.Vec3(1.5, -0.000625, 0)
         this.InitStats()
         this.InitPhysics()
         this.InitPhysicsDebugger()
         this.InitEnv()
         this.HeliGLTF()
         this.BuildingsGLTF()
-        //this.InitBuildings()
         this.InitHeliControls()
         this.InitCamera()
         this.InitLights()
@@ -88,17 +88,27 @@ class NewScene{
     }
 
     InitEnv(){
-        this.planeGeomtery = new THREE.PlaneGeometry(10000, 10000)
+        this.planeGeomtery = new THREE.PlaneGeometry(1000, 1000)
         this.planeMaterial = new THREE.MeshStandardMaterial({
             color: 0x191919,
             side: THREE.DoubleSide
         })
         this.plane = new THREE.Mesh(this.planeGeomtery, this.planeMaterial)
+        this.plane2 = new THREE.Mesh(this.planeGeomtery, this.planeMaterial)
+        this.plane3 = new THREE.Mesh(this.planeGeomtery, this.planeMaterial)
+        this.plane4 = new THREE.Mesh(this.planeGeomtery, this.planeMaterial)
+        this.plane5 = new THREE.Mesh(this.planeGeomtery, this.planeMaterial)
         this.plane.rotation.x = -Math.PI * 0.5
-        this.scene.add(this.plane)
+        this.plane2.position.z = -500
+        this.plane3.position.z = 500
+        this.plane4.rotation.y = -Math.PI * 0.5
+        this.plane4.position.x = -500
+        this.plane5.rotation.y = -Math.PI * 0.5
+        this.plane5.position.x = 500
+        this.scene.add(this.plane, this.plane2, this.plane3, this.plane4, this.plane5)
 
         this.fog = new THREE.FogExp2(0xffffff, 0.005)
-        this.scene.fog = this.fog
+        //this.scene.fog = this.fog
 
         this.groundBody = new CANNON.Body({
             mass: 0,
@@ -122,38 +132,80 @@ class NewScene{
         this.ceiling.position.set(0, 250, 0)
     }
 
-    InitBuildings(){
-        this.buildingMaterial = new THREE.MeshStandardMaterial({ color: 0x191919})
-        for (let i = 0; i <= 250; i++){
-            this.rand = 250 + Math.random() * 250;
-            this.x = Math.round(Math.random()*100+100)
-            this.z = Math.round(Math.random()*100+100)
-            this.angle = Math.random() * Math.PI * 200
-            this.radius = 500 + Math.random() * 5000
-            this.posX = Math.cos(this.angle) * this.radius
-            this.posZ = Math.sin(this.angle) * this.radius
-            this.building = new THREE.Mesh(new THREE.BoxGeometry(this.x, this.rand, this.z), this.buildingMaterial)
-            this.scene.add(this.building)
-            this.building.position.set(this.posX, this.rand/2, this.posZ)
-        
-            this.buildingShape = new CANNON.Box(new CANNON.Vec3(this.x/2, this.rand/2, this.z/2))
-            this.buildingBody = new CANNON.Body({
-                mass: 0,
-                material: this.defaultMaterial
-            })
-            this.buildingBody.position.set(this.posX, this.rand/2, this.posZ)
-            this.buildingBody.addShape(this.buildingShape)
-            this.world.addBody(this.buildingBody)
-        }
-    }
-
     BuildingsGLTF(){
-        this.buildingMaterial = new THREE.MeshStandardMaterial({color: 0x191919})
+        
+        this.buildingMaterial = new THREE.MeshStandardMaterial({color: 0x8e0413})
+        this.buildingMaterial2 = new THREE.MeshStandardMaterial({color: 0x004733})
+        this.buildingMaterial3 = new THREE.MeshStandardMaterial({color: 0xcb0b0a})
+        this.buildingMaterial4 = new THREE.MeshStandardMaterial({color: 0x568d66})
+        
+        //console.log(this.buildingMaterials)
+        //console.log(this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))])
         this.gltfLoader.load(
             'buildings4.glb', (gltf) => {
+                console.log(gltf)
+                gltf.scene.traverse((child) => {
+                    for(let i = 0; i <= 9; i++){
+                        this.randMaterial = this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))]
+                        if(child.name === `buildings00${i}`){
+                        child.material = this.buildingMaterial
+                        }
+                    }
+                    for(let i = 10; i <= 40; i++){
+                        this.randMaterial = this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))]
+                        if(child.name === `buildings0${i}`){
+                        child.material = this.buildingMaterial2
+                        }
+                    }
+
+                    for(let i = 41; i <= 80; i++){
+                        this.randMaterial = this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))]
+                        if(child.name === `buildings0${i}`){
+                        child.material = this.buildingMaterial3
+                        }
+                    }
+
+                    for(let i = 81; i <= 99; i++){
+                        this.randMaterial = this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))]
+                        if(child.name === `buildings0${i}`){
+                        child.material = this.buildingMaterial4
+                        }
+                    }
+                    for(let i = 100; i <= 129; i++){
+                        this.randMaterial = this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))]
+                        if(child.name === `buildings${i}`){
+                        child.material = this.buildingMaterial2
+                        }
+                    }
+                    
+                })
                 this.scene.add(gltf.scene)
             }
         )
+        this.buildingBody = new CANNON.Body({
+            mass: 0,
+            material: this.defaultMaterial
+        })
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(15, 28, 28)), new CANNON.Vec3(263, 30, 28))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(15, 28, 8)), new CANNON.Vec3(263, 28, 70))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(15, 25, 12)), new CANNON.Vec3(290, 25, 78))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(30, 10, 60)), new CANNON.Vec3(196, 10, 60))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(14, 66, 20)), new CANNON.Vec3(210, 66, 45))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(14, 90, 20)), new CANNON.Vec3(190, 90, 35))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(10, 85, 15)), new CANNON.Vec3(180, 85, 118))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(14, 27, 10)), new CANNON.Vec3(180, 27, 93))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(14, 18, 14)), new CANNON.Vec3(180, 18, 70))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(15, 35, 12)), new CANNON.Vec3(210, 35, 125))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 28, 10)), new CANNON.Vec3(178, 28, 144))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(15, 16, 22)), new CANNON.Vec3(210, 16, 160))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(15, 25, 25)), new CANNON.Vec3(180, 25, 185))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 67, 12)), new CANNON.Vec3(210, 67, 195))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(25, 67, 18)), new CANNON.Vec3(195, 67, 225))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 107, 18)), new CANNON.Vec3(195, 107, 225))
+
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(20, 80, 15)), new CANNON.Vec3(115, 80, 220))
+
+        this.world.addBody(this.buildingBody)
     }
 
     HeliGLTF(){
@@ -271,8 +323,8 @@ class NewScene{
     }
 
     InitCamera(){
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000)
-        this.camera.position.set(0, 500, 250)
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000000)
+        this.camera.position.set(0, 700, 0)
         this.scene.add(this.camera)
         this.chaseCam = new THREE.Object3D()
         this.chaseCam.position.set(0, 0, 0)
@@ -378,7 +430,7 @@ class NewScene{
             //     this.heliMesh.rotation.z += Math.PI * 0.5 * this.deltaTime
             //     this.rotorMesh.rotation.z += Math.PI * 0.5 * this.deltaTime
             // }
-            console.log(this.rotorBody.quaternion)
+            //console.log(this.rotorBody.quaternion)
             //console.log(this.heliMesh.rotation.x)
             if(!this.yawing){
                 if(this.rotorBody.angularVelocity.y < 0){
@@ -432,15 +484,14 @@ class NewScene{
             this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())  
         }
             if(this.heliMesh){
-                this.camera.lookAt(this.heliMesh.position)
+                //this.camera.lookAt(this.heliMesh.position)
             }
             this.chaseCamPivot.getWorldPosition(this.v)
             if(this.v.y < 1){
                 this.v.y = 1
             }
-        
-            this.camera.position.lerpVectors(this.camera.position, this.v, 0.5)
             
+            //this.camera.position.lerpVectors(this.camera.position, this.v, 0.5)
             this.renderer.render(this.scene, this.camera)
             this.controls.update()
             this.Update()
