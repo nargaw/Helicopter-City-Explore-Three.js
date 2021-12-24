@@ -2,7 +2,8 @@ import './style.css'
 import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import { GUI } from 'dat.gui'
+import fragment from './shaders/fragment.glsl'
+import vertex from './shaders/vertex.glsl'
 import Stats from 'stats.js'
 import * as CANNON from 'cannon-es'
 import cannonDebugger from 'cannon-es-debugger'
@@ -34,7 +35,8 @@ class NewScene{
         this.downForce = new CANNON.Vec3(1.5, -0.000625, 0)
         this.InitStats()
         this.InitPhysics()
-        this.InitPhysicsDebugger()
+        //this.InitPhysicsDebugger()
+        this.InitFireFlies()
         this.InitEnv()
         this.HeliGLTF()
         this.BuildingsGLTF()
@@ -42,7 +44,7 @@ class NewScene{
         this.InitCamera()
         this.InitLights()
         this.InitRenderer()
-        this.InitControls()
+        //this.InitControls()
         this.Update()
         window.addEventListener('resize', () => {
             this.Resize()
@@ -108,7 +110,7 @@ class NewScene{
         this.scene.add(this.plane, this.plane2, this.plane3, this.plane4, this.plane5)
 
         this.fog = new THREE.FogExp2(0xffffff, 0.005)
-        //this.scene.fog = this.fog
+        this.scene.fog = this.fog
 
         this.groundBody = new CANNON.Body({
             mass: 0,
@@ -143,18 +145,20 @@ class NewScene{
         //console.log(this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))])
         this.gltfLoader.load(
             'buildings4.glb', (gltf) => {
-                console.log(gltf)
+                //console.log(gltf)
                 gltf.scene.traverse((child) => {
                     for(let i = 0; i <= 9; i++){
                         this.randMaterial = this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))]
                         if(child.name === `buildings00${i}`){
                         child.material = this.buildingMaterial
+                        child.castShadow = true
                         }
                     }
                     for(let i = 10; i <= 40; i++){
                         this.randMaterial = this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))]
                         if(child.name === `buildings0${i}`){
                         child.material = this.buildingMaterial2
+                        child.castShadow = true
                         }
                     }
 
@@ -162,6 +166,7 @@ class NewScene{
                         this.randMaterial = this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))]
                         if(child.name === `buildings0${i}`){
                         child.material = this.buildingMaterial3
+                        child.castShadow = true
                         }
                     }
 
@@ -169,12 +174,14 @@ class NewScene{
                         this.randMaterial = this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))]
                         if(child.name === `buildings0${i}`){
                         child.material = this.buildingMaterial4
+                        child.castShadow = true
                         }
                     }
                     for(let i = 100; i <= 129; i++){
                         this.randMaterial = this.buildingMaterials[Math.floor(Math.random(this.buildingMaterials.length))]
                         if(child.name === `buildings${i}`){
                         child.material = this.buildingMaterial2
+                        child.castShadow = true
                         }
                     }
                     
@@ -232,15 +239,22 @@ class NewScene{
         this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 82, 6)), new CANNON.Vec3(-42, 82, 5))
         this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 97, 6)), new CANNON.Vec3(-60, 97, 5))
         //
-        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 275, 16)), new CANNON.Vec3(-130, 275, 130))
-        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 275, 16)), new CANNON.Vec3(-130, 275, 220))
-        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 275, 16)), new CANNON.Vec3(-130, 275, -55))
-        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 275, 16)), new CANNON.Vec3(-120, 275, -235))
-        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 275, 16)), new CANNON.Vec3(-130, 275, -245))
-        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 275, 16)), new CANNON.Vec3(-40, 275, -55))
-        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 275, 16)), new CANNON.Vec3(-20, 275, -255))
-        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 275, 16)), new CANNON.Vec3(120, 275, -85))
-        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 275, 16)), new CANNON.Vec3(200, 275, -85))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(30, 112, 15)), new CANNON.Vec3(-135, 112, 135))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(25, 99, 22)), new CANNON.Vec3(-135, 99, 215))
+
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(25, 88, 18)), new CANNON.Vec3(-130, 88, -55))
+
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 84, 20)), new CANNON.Vec3(-125, 84, -250))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 91, 20)), new CANNON.Vec3(-140, 91, -235))
+
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(28, 86, 20)), new CANNON.Vec3(-40, 86, -55))
+
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 80, 16)), new CANNON.Vec3(-20, 80, -255))
+
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(22, 110, 22)), new CANNON.Vec3(120, 110, -95))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(12, 88, 40)), new CANNON.Vec3(200, 88, -105))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(6, 80, 40)), new CANNON.Vec3(220, 80, -94))
+        this.buildingBody.addShape(new CANNON.Box(new CANNON.Vec3(6, 80, 55)), new CANNON.Vec3(178, 80, -105))
 
 
         this.world.addBody(this.buildingBody)
@@ -340,6 +354,37 @@ class NewScene{
         }
     }
 
+    InitFireFlies(){
+        this.firefliesGeometry = new THREE.BufferGeometry()
+        this.firefliesCount = 100000
+        this.positionArray = new Float32Array(this.firefliesCount * 3)
+        this.scaleArray = new Float32Array(this.firefliesCount)
+        for(let i = 0; i < this.firefliesCount; i++){
+            this.positionArray[i * 3 + 0] = (Math.random() - 0.5) * 500
+            this.positionArray[i * 3 + 1] = (Math.random()) * 50
+            this.positionArray[i * 3 + 2] = (Math.random() - 0.5) * 500
+
+            this.scaleArray[i] = Math.random()
+        }
+        this.firefliesGeometry.setAttribute('position', new THREE.BufferAttribute(this.positionArray, 3))
+        this.firefliesGeometry.setAttribute('aScale', new THREE.BufferAttribute(this.scaleArray, 1))
+
+        this.firefliesMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                u_time: { value: 0},
+                u_pixelRatio: { value: Math.min(window.devicePixelRatio, 2)},
+                u_size: { value: 500 }
+            },
+            vertexShader: vertex,
+            fragmentShader: fragment,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        })
+        this.fireflies = new THREE.Points(this.firefliesGeometry, this.firefliesMaterial)
+        this.scene.add(this.fireflies)
+    }
+
     InitLights(){
         this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
         this.scene.add(this.ambientLight)
@@ -354,6 +399,7 @@ class NewScene{
             antialias: true,
         })
         this.renderer.shadowMap.enabled = true
+        this.renderer.outputEncoding = THREE.sRGBEncoding
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
         this.renderer.setSize(window.innerWidth, window.innerHeight)
@@ -522,16 +568,16 @@ class NewScene{
             this.rotorBody.applyLocalForce(this.thrust, new CANNON.Vec3())  
         }
             if(this.heliMesh){
-                //this.camera.lookAt(this.heliMesh.position)
+                this.camera.lookAt(this.heliMesh.position)
             }
             this.chaseCamPivot.getWorldPosition(this.v)
             if(this.v.y < 1){
                 this.v.y = 1
             }
             
-            //this.camera.position.lerpVectors(this.camera.position, this.v, 0.5)
+            this.camera.position.lerpVectors(this.camera.position, this.v, 0.5)
             this.renderer.render(this.scene, this.camera)
-            this.controls.update()
+            //this.controls.update()
             this.Update()
             this.stats.update()
         })  
